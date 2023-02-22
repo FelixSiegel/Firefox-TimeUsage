@@ -1,9 +1,21 @@
 console.log("Hello from the popup.js");
 
+// Function that returns actualy date in forman mm/dd/yy
+function getToday() {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+
+    return (mm + '/' + dd + '/' + yyyy)
+}
+
 // Function to convert time in seconds to better readable string
 function timeString(seconds) {
-    // less the a minute
-    if (seconds < 60) {return "a few seconds"}
+    // less then 10 seconds 
+    if (seconds < 10) {return "a few seconds"}
+    // less then a minute
+    else if (seconds < 60) {return `${seconds}sec`}
     // less then a hour
     else if (seconds < 3600) {return `${Math.floor(seconds/60)}min`}
     // over a hour
@@ -32,27 +44,27 @@ function generateHTML(items) {
 }
 
 // send update-request to background-script
-browser.runtime.sendMessage({"cmd": "update_time"})
-.then(
-    (response) => {
-        if (response.state == "updated") {
-            browser.storage.local.get().then(
-                (items) => {
-                    list = []
-                    for (var i = 0; i < Object.keys(items).length; i++) {
-                        key = Object.keys(items)[i]
-                        if (key == "c_url") {continue}
-                        console.log(`Item ${key}: ${items[key]} seconds`)
-                        list.push([key, items[key]])
-                    }
-                    // sort list by highest time to lowest time
-                    list.sort((a, b) => b[1] - a[1])
-                    // generate item-list for html
-                    html = generateHTML(list)
-                    document.getElementById("list_body").innerHTML = html;
+browser.runtime.sendMessage({"cmd": "update_time"}).then(
+(response) => {
+    if (response.state == "updated") {
+        var today = getToday();
+        browser.storage.local.get(today).then(
+            (items) => {
+                if (items[today] == undefined) {console.log("No data for today"); return}
+                list = []
+                for (var i = 0; i < Object.keys(items[today]).length; i++) {
+                    var key = Object.keys(items[today])[i];
+                    console.log(`Item ${key}: ${items[today][key]} seconds`)
+                    list.push([key, items[today][key]])
                 }
-            )
-        }
-    },
-    (err) => {console.error("Responsing from extension-script failed! ", err);}
+                // sort list by highest time to lowest time
+                list.sort((a, b) => b[1] - a[1])
+                // generate item-list for html
+                html = generateHTML(list)
+                document.getElementById("list_body").innerHTML = html;
+            }
+        )
+    }
+},
+(err) => {console.error("Responsing from extension-script failed! ", err);}
 )
