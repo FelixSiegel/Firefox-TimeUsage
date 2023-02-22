@@ -17,7 +17,7 @@ function timeString(seconds) {
     // less then a minute
     else if (seconds < 60) {return `${seconds}sec`}
     // less then a hour
-    else if (seconds < 3600) {return `${Math.floor(seconds/60)}min`}
+    else if (seconds < 3600) {return `${Math.floor(seconds/60)}min  ${(seconds%60)}sec`}
     // over a hour
     else { return `${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}min` }
 }
@@ -62,9 +62,19 @@ browser.runtime.sendMessage({"cmd": "update_time"}).then(
                 // generate item-list for html
                 html = generateHTML(list)
                 document.getElementById("list_body").innerHTML = html;
+                update_commonInfos(list)
             }
         )
     }
 },
 (err) => {console.error("Responsing from extension-script failed! ", err);}
 )
+
+function update_commonInfos(url_list) {
+    var pages = url_list.length;
+    var total_sec = 0;
+    for (var i=0;i < pages; i++) {total_sec+=url_list[i][1]}
+    document.getElementById("date").innerText = getToday();
+    document.getElementById("totaltime").innerText = timeString(total_sec);
+    document.getElementById("pagestotal").innerText = pages + " Pages"
+}
