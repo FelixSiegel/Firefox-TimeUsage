@@ -5,9 +5,7 @@ function check_url(url) {
     var patterns = [/https:\/\/.*\/.*/gm, /http:\/\/.*\/.*/gm]
     for (var i = 0; i < patterns.length; i++) {
         var match = url.match(patterns[i])
-        if (match !== null && match[0] === url) {
-            return true
-        }
+        if (match !== null && match[0] === url) { return true }
     }
     return false
 }
@@ -78,6 +76,9 @@ function updateActive() {
 
     // get current active tab of active window
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        // If url is not in whitelist -> return
+        if (check_url(tabs[0].url) == false) {return}
+
         // set current url to storage
         browser.storage.local.set({"c_url": [extract_hostname(tabs[0].url), Date.now()/1000 | 0]});
         console.info("Value of c_url was updated!")

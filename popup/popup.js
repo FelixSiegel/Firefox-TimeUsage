@@ -7,7 +7,7 @@ function timeString(seconds) {
     // less then a hour
     else if (seconds < 3600) {return `${Math.floor(seconds/60)}min`}
     // over a hour
-    else { return `${Math.floor(seconds/3600)}h ${Math.floor(seconds/60)}min` }
+    else { return `${Math.floor(seconds/3600)}h ${Math.floor((seconds%3600)/60)}min` }
 }
 
 // Function to add list entries with data from background.js
@@ -16,12 +16,15 @@ function generateHTML(items) {
     for (i=0; i < items.length; i++) {
         html += `
         <div class="list-item">
-            <div class="grade">
+            <div class="list-grade">
                 <p>#${i+1}</p>
             </div>
-            <div class="web-info">
-                <p class="web-name">${items[i][0]}</p>
-                <p class="time-info">Time used: ${timeString(items[i][1])}</p>
+            <div class="list-info">
+                <p class="hostname">${items[i][0]}</p>
+                <p class="timeused">Time used: ${timeString(items[i][1])}</p>
+            </div>
+            <div class="list-setting">
+                <img src="images/settings-dots.svg">
             </div>
         </div>`
     }
@@ -46,9 +49,9 @@ browser.runtime.sendMessage({"cmd": "update_time"})
                     list.sort((a, b) => b[1] - a[1])
                     // generate item-list for html
                     html = generateHTML(list)
-                    document.getElementById("ranking_list").innerHTML += html;
+                    document.getElementById("list_body").innerHTML = html;
                 }
-                )
+            )
         }
     },
     (err) => {console.error("Responsing from extension-script failed! ", err);}
