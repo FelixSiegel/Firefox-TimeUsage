@@ -67,7 +67,8 @@ function addTime(url, time) {
         (item) => {
             var obj = {}; 
             obj[today] = item[today];
-            obj[today][url] = (item[today][url] + time)
+            if (item[today][url] == undefined) {obj[today][url] = time}
+            else {obj[today][url] = (item[today][url] + time)}
             browser.storage.local.set(obj);
 
             console.info(`Time successfully added! Url: ${url}, Time-added: ${time}`);
@@ -80,6 +81,7 @@ function updateTime() {
     // if c_url is defined -> calculate passed time -> sum to sign in local-storage
     browser.storage.local.get("c_url").then(
         (item) => {
+            console.log("Item-check: ", item, item.c_url)
             if (item.c_url == undefined) {
                 console.warn("c_url is currently undefined!"); return;
             }
