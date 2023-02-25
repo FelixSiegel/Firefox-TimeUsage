@@ -5,7 +5,9 @@
     "description": "Displays a ranking list of time you spend on websites of current day.",
 
     "icons": {
-        "48": "icons/stopwatch.svg"
+        "16": "images/stopwatch.svg",
+        "32": "images/stopwatch.svg",
+        "48": "images/stopwatch.svg"
     },
 
     "content_scripts": [
@@ -27,7 +29,7 @@
     ],
     
     "browser_action": {
-        "default_icon": "icons/stopwatch.svg",
+        "default_icon": "images/stopwatch.svg",
         "default_title": "BrowserTime",
         "default_popup": "popup/popup.html"
     }
