@@ -91,7 +91,7 @@ body {
     min-height: 50px;
     margin-top: 3px;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow-x: clip;
     border-radius: 5px;
 }
 
@@ -120,13 +120,15 @@ body {
     box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.hostname { color: #e44616; }
+.hostname { color: #e44616; font-weight: 500;}
 
 .timeused { font-weight: 300; }
 
 .list-setting {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -138,13 +140,41 @@ body {
 }
 
 .list-setting img {
+    height: 16px; width: 16px;
     filter: invert(96%) sepia(13%) saturate(369%) hue-rotate(178deg) brightness(90%) contrast(89%);
     opacity: 0%;
     transition: 0.2s all;
     cursor: pointer;
 }
 
-.list-item:hover .list-setting img {opacity: 60%;}
+.list-item:hover .list-setting img {opacity: 100%;}
+
+.item-optionsmenu {
+    display: none;
+    position: absolute;
+    right: 0px;
+    z-index: 100;
+    flex-direction: column;
+    width: max-content;
+    background-color: #161b22;
+    border: 1px #30363d solid;
+    border-radius: 6px;
+    transform: translateY(50%) translateX(-5px);
+}
+
+.up-menu {transform: translateY(-50%) translateX(-5px) !important;}
+
+.opened { display: flex !important; opacity: 100% !important;}
+
+.optionsmenu-item {
+    padding: 5px;
+    word-break: keep-all;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.optionsmenu-item:hover { background-color: #20252b; }
 
 .action-row {
     width: 100%;

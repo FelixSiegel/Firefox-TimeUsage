@@ -61,6 +61,21 @@ function createNewSign() {
     )
 }
 
+function deleteTime(url) {
+    var today = getToday();
+    browser.storage.local.get(today).then(
+        (item) => {
+            var obj = {}; obj[today] = item[today];
+            // delete entry
+            delete obj[today][url]
+            browser.storage.local.set(obj);
+
+            console.info(`Time successfully deleted! Url: ${url}`);
+        },
+        (err) => {console.error("Error occured in deleteTime-Function! ", err)}
+    )
+}
+
 function addTime(url, time) {
     var today = getToday();
     browser.storage.local.get(today).then(
@@ -152,5 +167,9 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
             () => {console.info("c_url was deleted...")}, 
             (err) => {console.error("Error occured when deleting c_url from local-storage. ", err)}
         )
+    }
+    else if (data.cmd == 'delete_entry') {
+        deleteTime(data.url)
+        sendResponse({state: "successful"})
     }
 });
