@@ -172,4 +172,7 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
         deleteTime(data.url)
         sendResponse({state: "successful"})
     }
+    else if (data.cmd == 'ignore_entry') {
+        
+    }
 });

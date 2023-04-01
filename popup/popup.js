@@ -60,45 +60,53 @@ function update_commonInfos(url_list) {
     document.getElementById("pagestotal").innerText = pages + " Pages"
 }
 
-// send update-request to background-script
+// send update-request to background-script and add values to list -> render as html
 function updateList() {
-    browser.runtime.sendMessage({"cmd": "update_time"}).then(
-        (response) => {
-            if (response.state == "updated") {
-                var today = getToday();
-                browser.storage.local.get(today).then(
-                    (items) => {
-                        if (items[today] == undefined) {console.log("No data for today"); return}
-                        var list = []
-                        for (var i = 0; i < Object.keys(items[today]).length; i++) {
-                            var key = Object.keys(items[today])[i];
-                            console.log(`Item ${key}: ${items[today][key]} seconds`)
-                            list.push([key, items[today][key]])
-                        }
-                        // sort list by highest time to lowest time
-                        list.sort((a, b) => b[1] - a[1])
-                        // generate item-list for html
-                        html = generateHTML(list)
-                        document.getElementById("list_body").innerHTML = html;
-                        update_commonInfos(list)
-                    }
-                )
+    var today = getToday();
+    browser.storage.local.get(today).then(
+        (items) => {
+            if (items[today] == undefined) {console.log("No data for today"); return}
+            var list = []
+            for (var i = 0; i < Object.keys(items[today]).length; i++) {
+                var key = Object.keys(items[today])[i];
+                console.log(`Item ${key}: ${items[today][key]} seconds`)
+                list.push([key, items[today][key]])
             }
-        },
-        (err) => {console.error("Responsing from extension-script failed! ", err);}
+            // sort list by highest time to lowest time
+            list.sort((a, b) => b[1] - a[1])
+            // generate item-list for html
+            html = generateHTML(list)
+            document.getElementById("list_body").innerHTML = html;
+            update_commonInfos(list)
+        }
     )
 }
 
 // Function for delete time of list entry
 function deleteEntry(entry) {
     var hostname = entry.children[1].children[0].innerText;
-    console.log("Detected host to delete: ", hostname)
+    console.log("Detected host to delete: ", hostname);
 
     browser.runtime.sendMessage({cmd: "delete_entry", url: hostname}).then(
         (response) => {
             // if it wasnt successful -> log error
             if (response.state != "successful") {
                 console.error("Error when deleting time for " + hostname)
+            } else {updateList()}
+        }
+    )
+}
+
+// Function for delete time of list entry
+function addIgnorelist(entry) {
+    var hostname = entry.children[1].children[0].innerText;
+    console.log("Detected host to add: ", hostname);
+
+    browser.runtime.sendMessage({cmd: "ignore_entry", url: hostname}).then(
+        (response) => {
+            // if it wasnt successful -> log error
+            if (response.state != "successful") {
+                console.error(`Error when adding entry (${hostname})to ignore list`)
             } else {updateList()}
         }
     )
