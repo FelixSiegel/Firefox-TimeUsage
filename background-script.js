@@ -10,12 +10,16 @@ function getToday() {
     return (mm + '/' + dd + '/' + yyyy)
 }
 
-function check_url(url) {
+function check_url(url, ignore_list=[]) {
     // check if url matches to url-patterns
     var patterns = [/https:\/\/.*\/.*/gm, /http:\/\/.*\/.*/gm]
     for (var i = 0; i < patterns.length; i++) {
         var match = url.match(patterns[i])
-        if (match !== null && match[0] === url) { return true }
+        if (match !== null && match[0] === url) { 
+            // check url whether is beeing in ignore-list
+            if (ignore_list.includes(extract_hostname(url))) {return false}
+            return true;
+        }
     }
     return false
 }
@@ -92,6 +96,22 @@ function addTime(url, time) {
     )
 }
 
+function addIgnore(url) {
+    // first delete entry
+    // TODO: delete entry from all days -> currently it will only deleted from current day
+    deleteTime(url)
+    // add it to ignore list in local-storage
+    browser.storage.local.get("ignored").then(
+        (ignore_list) => {
+            console.log(ignore_list)
+            var list = (Object.keys(ignore_list).length >= 1) ? ignore_list["ignored"] : [];
+            console.log(list);
+            list.push(url);
+            browser.storage.local.set({"ignored": list});
+        }
+    )
+}
+
 function updateTime() {
     // if c_url is defined -> calculate passed time -> sum to sign in local-storage
     browser.storage.local.get("c_url").then(
@@ -119,28 +139,37 @@ function updateActive() {
     browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
         var url = tabs[0].url;
 
-        // If url is not in whitelist -> return
-        if (check_url(url) == false) {browser.storage.local.remove("c_url"); return}
+        // get current ignore-list
+        browser.storage.local.get("ignored").then(
+            (ignore_list) => {
+                var check;
+                if (Object.keys(ignore_list).length < 1) {check = check_url(url)}
+                else {check = check_url(url, ignore_list["ignored"])}
 
-        // set current url to storage
-        browser.storage.local.set({"c_url": [extract_hostname(url), Date.now()/1000 | 0]});
-        console.info("c_url was updated!")
-
-        // check if already list assignment exist
-        var today = getToday()
-        browser.storage.local.get(today).then(
-            (item) => {
-                // if no sign of that url in current date exist -> create new sign
-                if( item[today] == undefined || 
-                    item[today][extract_hostname(url)] == undefined ) {
-                    createNewSign();
-                    return;
-                }
-                // else log simple info that already sign exist
-                console.info(`Url-Sign of ${Object.keys(item)[0]} in local-storage already exists!`)
-            },
-            (err) => {
-                console.error(`Error occured when fetching tab in local-storage! \n${err}`);
+                // If url is not in whitelist -> return
+                if (check == false) {browser.storage.local.remove("c_url"); return}
+        
+                // set current url to storage
+                browser.storage.local.set({"c_url": [extract_hostname(url), Date.now()/1000 | 0]});
+                console.info("c_url was updated!")
+        
+                // check if already list assignment exist
+                var today = getToday()
+                browser.storage.local.get(today).then(
+                    (item) => {
+                        // if no sign of that url in current date exist -> create new sign
+                        if( item[today] == undefined || 
+                            item[today][extract_hostname(url)] == undefined ) {
+                            createNewSign();
+                            return;
+                        }
+                        // else log simple info that already sign exist
+                        console.info(`Url-Sign of ${Object.keys(item)[0]} in local-storage already exists!`)
+                    },
+                    (err) => {
+                        console.error(`Error occured when fetching tab in local-storage! \n${err}`);
+                    }
+                )
             }
         )
     });
@@ -173,6 +202,9 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
         sendResponse({state: "successful"})
     }
     else if (data.cmd == 'ignore_entry') {
-        
+        // add url to ignore_list array in local storage
+        console.log("Add url to ignore-list: ", data.url);
+        addIgnore(data.url);
+        sendResponse({state: "successful"})
     }
 });
