@@ -61,25 +61,22 @@ function update_commonInfos(url_list) {
 }
 
 // send update-request to background-script and add values to list -> render as html
-function updateList() {
+async function updateList() {
     var today = getToday();
-    browser.storage.local.get(today).then(
-        (items) => {
-            if (items[today] == undefined) {console.log("No data for today"); return}
-            var list = []
-            for (var i = 0; i < Object.keys(items[today]).length; i++) {
-                var key = Object.keys(items[today])[i];
-                console.log(`Item ${key}: ${items[today][key]} seconds`)
-                list.push([key, items[today][key]])
-            }
-            // sort list by highest time to lowest time
-            list.sort((a, b) => b[1] - a[1])
-            // generate item-list for html
-            html = generateHTML(list)
-            document.getElementById("list_body").innerHTML = html;
-            update_commonInfos(list)
-        }
-    )
+    var items = await browser.storage.local.get(today);
+    if (items[today] == undefined) {console.log("No data for today"); return}
+    var list = []
+    for (var i = 0; i < Object.keys(items[today]).length; i++) {
+        var key = Object.keys(items[today])[i];
+        console.log(`Item ${key}: ${items[today][key]} seconds`)
+        list.push([key, items[today][key]])
+    }
+    // sort list by highest time to lowest time
+    list.sort((a, b) => b[1] - a[1])
+    // generate item-list for html
+    html = generateHTML(list)
+    document.getElementById("list_body").innerHTML = html;
+    update_commonInfos(list)
 }
 
 // Function for delete time of list entry

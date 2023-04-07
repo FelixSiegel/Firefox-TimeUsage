@@ -37,174 +37,150 @@ function extract_hostname(url) {
     return host
 }
 
-function createNewSign() {
+async function createNewSign() {
     var today = getToday();
-    // get current url
-    browser.storage.local.get("c_url").then(
-        (storage) => {
-            browser.storage.local.get(today).then(
-                (item) => {
-                    // prepare new object-sign
-                    var obj = {}; obj[today] = {};
-                    var url = storage.c_url[0]
-                    // if already values of today exists
-                    if (item[today] != undefined) {
-                        obj[today] = item[today]
-                    }
-                    // finaly add new value
-                    obj[today][url] = 0
-                    // add new sign to local-storage
-                    browser.storage.local.set(obj)
-                    console.log("[INFO]: new value added: ", obj)
-                    // console.info("Created new sign to local-storage! Item: ", item.c_url);
-                },
-                (error) => {console.error(`Error occured when getting todays value of local-storage! `, error)}
-            )
-        },
-        (err) => {console.error(`Error occured when getting current url from local-storage! \n${err}`)}
-    )
+
+    try {
+        var s_c_url = await browser.storage.local.get("c_url");
+        var item = await browser.storage.local.get(today);
+    } catch (error) {
+        console.error("[ERROR]: failed to get data from local storage", error);
+        return;
+    }
+
+    // prepare new object-sign
+    var obj = {}; obj[today] = {};
+    var url = s_c_url.c_url[0];
+    // if already values of today exists
+    if (item[today] != undefined) {
+        obj[today] = item[today];
+    }
+    // finaly add new value
+    obj[today][url] = 0;
+    // add new sign to local-storage
+    await browser.storage.local.set(obj);
+    console.log("[INFO]: new value added: ", obj)
 }
 
-function deleteTime(url) {
+async function deleteTime(url) {
     var today = getToday();
-    browser.storage.local.get(today).then(
-        (item) => {
-            var obj = {}; obj[today] = item[today];
-            // delete entry
-            delete obj[today][url]
-            browser.storage.local.set(obj);
+    var item = await browser.storage.local.get(today);
+    var obj = {}; obj[today] = item[today];
+    // delete entry
+    delete obj[today][url]
+    await browser.storage.local.set(obj);
 
-            console.info(`Time successfully deleted! Url: ${url}`);
-        },
-        (err) => {console.error("Error occured in deleteTime-Function! ", err)}
-    )
+    console.info(`Time successfully deleted! Url: ${url}`);
 }
 
-function addTime(url, time) {
+async function addTime(url, time) {
     var today = getToday();
-    browser.storage.local.get(today).then(
-        (item) => {
-            var obj = {}; 
-            obj[today] = item[today];
-            if (item[today][url] == undefined) {obj[today][url] = time}
-            else {obj[today][url] = (item[today][url] + time)}
-            browser.storage.local.set(obj);
+    var item = await browser.storage.local.get(today);
 
-            console.info(`Time successfully added! Url: ${url}, Time-added: ${time}`);
-        },
-        (err) => {console.error("Error occured in addTime-Function! ", err)}
-    )
+    var obj = {}; 
+    obj[today] = item[today] || { today: {} };
+    obj[today][url] = (obj[today][url] ?? 0) + time;
+
+    await browser.storage.local.set(obj);
+    console.info(`Time successfully added! Url: ${url}, Time-added: ${time}`);
 }
 
-function addIgnore(url) {
-    // first delete entry
+async function addIgnore(url) {
+    // first delete entry from today's records
     // TODO: delete entry from all days -> currently it will only deleted from current day
-    deleteTime(url)
+    await deleteTime(url);
     // add it to ignore list in local-storage
-    browser.storage.local.get("ignored").then(
-        (ignore_list) => {
-            console.log(ignore_list)
-            var list = (Object.keys(ignore_list).length >= 1) ? ignore_list["ignored"] : [];
-            console.log(list);
-            list.push(url);
-            browser.storage.local.set({"ignored": list});
-        }
-    )
+    var ignore_list = await browser.storage.local.get("ignored");
+    var list = (Object.keys(ignore_list).length >= 1) ? ignore_list["ignored"] : [];
+    list.push(url);
+    await browser.storage.local.set({"ignored": list});
 }
 
-function updateTime() {
+async function updateTime() {
     // if c_url is defined -> calculate passed time -> sum to sign in local-storage
-    browser.storage.local.get("c_url").then(
-        (item) => {
-            console.log("Item-check: ", item, item.c_url)
-            if (item.c_url == undefined) {
-                console.warn("c_url is currently undefined!"); return;
-            }
-            // get timestamp of tab getting active -> calculate passed time -> add to sign
-            var sp = item.c_url[1]; var url = item.c_url[0]; // start point and url
-            var time_passed = (Date.now() / 1000 | 0) - sp
-            addTime(url, time_passed)
-        },
-        (err) => {console.error(`Error occured when getting current url from local-storage! \n${err}`)}
-    )
+    var item = await browser.storage.local.get("c_url");
+    console.log("[INFO]: Item-check: ", item, item.c_url)
+    if (!item?.c_url) {
+        console.warn("[WARN]: c_url is currently undefined!"); return;
+    }
+    // get timestamp of tab getting active -> calculate elapsed time -> add to sign
+    var startTime = item.c_url[1]; var url = item.c_url[0];
+    var elapsedTime = (Date.now() / 1000 | 0) - startTime;
+    await addTime(url, elapsedTime);
 }
 
-function updateActive() {
+async function updateActive() {
     console.log("Called updateActive-Function")
 
     // update time from c_url to sign in storage
-    updateTime()
+    await updateTime();
 
     // get current active tab of active window
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-        var url = tabs[0].url;
+    var tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    var url = tabs[0].url;
 
-        // get current ignore-list
-        browser.storage.local.get("ignored").then(
-            (ignore_list) => {
-                var check;
-                if (Object.keys(ignore_list).length < 1) {check = check_url(url)}
-                else {check = check_url(url, ignore_list["ignored"])}
+    // get current ignore-list
+    var ignore_list = await browser.storage.local.get("ignored");
+    var check = check_url(url, ignore_list["ignored"] || []);
 
-                // If url is not in whitelist -> return
-                if (check == false) {browser.storage.local.remove("c_url"); return}
-        
-                // set current url to storage
-                browser.storage.local.set({"c_url": [extract_hostname(url), Date.now()/1000 | 0]});
-                console.info("c_url was updated!")
-        
-                // check if already list assignment exist
-                var today = getToday()
-                browser.storage.local.get(today).then(
-                    (item) => {
-                        // if no sign of that url in current date exist -> create new sign
-                        if( item[today] == undefined || 
-                            item[today][extract_hostname(url)] == undefined ) {
-                            createNewSign();
-                            return;
-                        }
-                        // else log simple info that already sign exist
-                        console.info(`Url-Sign of ${Object.keys(item)[0]} in local-storage already exists!`)
-                    },
-                    (err) => {
-                        console.error(`Error occured when fetching tab in local-storage! \n${err}`);
-                    }
-                )
-            }
-        )
+    // If url is not in whitelist -> return
+    if (check === false) {
+        await browser.storage.local.remove("c_url"); 
+        return;
+    }
+
+    // set current url to storage
+    await browser.storage.local.set({
+        "c_url": [extract_hostname(url), Date.now()/1000 | 0]
     });
+    console.info("[INFO]: c_url was updated!")
+
+    // check if already list assignment exist
+    var today = getToday()
+    var item = await browser.storage.local.get(today);
+
+    // if no sign of that url in current date exist -> create new sign
+    if (!item || !item[today] || !item[today][extract_hostname(url)]) {
+        await createNewSign();
+        return;
+    }
+
+    // else log simple info that already sign exist
+    console.info(`Url-Sign of ${Object.keys(item)[0]} in local-storage already exists!`)
 }
 
 browser.tabs.onActivated.addListener(updateActive);
 browser.tabs.onUpdated.addListener(updateActive);
 
 // wait for messages of popup.js or main.js
-browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (data, _sender, sendResponse) => {
     if (data.cmd == 'update_time') {
         // update times in storage
-        updateTime()
+        await updateTime();
         sendResponse({state: "updated"});
     } 
     else if (data.cmd == 'update_active') {
         // update active tab and time
-        updateActive()
+        await updateActive();
         sendResponse({state: "updated"});
     }
     else if (data.cmd == 'stop') {
         // stop time adding by clearing current url
-        browser.storage.local.remove("c_url").then(
-            () => {console.info("c_url was deleted...")}, 
-            (err) => {console.error("Error occured when deleting c_url from local-storage. ", err)}
-        )
+        try {
+            await browser.storage.local.remove("c_url");
+            console.info("c_url was deleted...");
+        } catch (err) {
+            console.error("Error occurred when deleting c_url from local storage. ", err);
+        }
     }
     else if (data.cmd == 'delete_entry') {
-        deleteTime(data.url)
-        sendResponse({state: "successful"})
+        await deleteTime(data.url);
+        sendResponse({state: "successful"});
     }
     else if (data.cmd == 'ignore_entry') {
         // add url to ignore_list array in local storage
         console.log("Add url to ignore-list: ", data.url);
-        addIgnore(data.url);
-        sendResponse({state: "successful"})
+        await addIgnore(data.url);;
+        sendResponse({state: "successful"});
     }
 });
