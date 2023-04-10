@@ -256,7 +256,17 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 
     var media_labels = media_amounts.map(entry => entry[0]);
     var page_count = media_amounts.map(entry => entry[1]);
-    for (var i=0; i < page_count.length;i++) {media_labels[i] = media_labels[i] + ` (${page_count[i]} Pages)`}
+    var page_times = media_amounts.map(entry => entry[2]);
+    for (var i=0; i < page_count.length;i++) {
+        if (page_count[i] === 0) {
+            media_labels.splice(i, 1);
+            page_count.splice(i, 1);
+            page_times.splice(i, 1);
+            i--; // decrease i by 1 to adjust for the removed element
+        } else {
+            media_labels[i] = media_labels[i] + ` (${page_count[i]} Pages)`
+        }
+    }
 
     new Chart("mediaOverview", {
         type: "pie",
@@ -265,7 +275,7 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
             datasets: [{
                 backgroundColor: barColors,
                 borderWidth: 0,
-                data: media_amounts.map(entry => entry[2])
+                data: page_times
             }]
         },
         options: {
