@@ -55,7 +55,7 @@ async function createNewSign() {
     if (item[today] != undefined) {
         obj[today] = item[today];
     }
-    // finaly add new value
+    // finally add new value
     obj[today][url] = 0;
     // add new sign to local-storage
     await browser.storage.local.set(obj);
@@ -78,7 +78,7 @@ async function addTime(url, time) {
     var item = await browser.storage.local.get(today);
 
     var obj = {}; 
-    obj[today] = item[today] || { today: {} };
+    obj[today] = item[today] || { [today]: {} };
     obj[today][url] = (obj[today][url] ?? 0) + time;
 
     await browser.storage.local.set(obj);
@@ -153,16 +153,16 @@ browser.tabs.onActivated.addListener(updateActive);
 browser.tabs.onUpdated.addListener(updateActive);
 
 // wait for messages of popup.js or main.js
-browser.runtime.onMessage.addListener(async (data, _sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
     if (data.cmd == 'update_time') {
         // update times in storage
         await updateTime();
-        sendResponse({state: "updated"});
+        return new Promise((resolve) => { resolve({state: "updated"}) });
     } 
     else if (data.cmd == 'update_active') {
         // update active tab and time
         await updateActive();
-        sendResponse({state: "updated"});
+        return new Promise((resolve) => { resolve({state: "updated"}) });
     }
     else if (data.cmd == 'stop') {
         // stop time adding by clearing current url
@@ -175,12 +175,12 @@ browser.runtime.onMessage.addListener(async (data, _sender, sendResponse) => {
     }
     else if (data.cmd == 'delete_entry') {
         await deleteTime(data.url);
-        sendResponse({state: "successful"});
+        return new Promise((resolve) => { resolve({state: "successful"}) });
     }
     else if (data.cmd == 'ignore_entry') {
         // add url to ignore_list array in local storage
         console.log("Add url to ignore-list: ", data.url);
         await addIgnore(data.url);;
-        sendResponse({state: "successful"});
+        return new Promise((resolve) => { resolve({state: "successful"}) });
     }
 });

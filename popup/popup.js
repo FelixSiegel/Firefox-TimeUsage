@@ -1,6 +1,17 @@
 console.log("Hello from the popup.js");
 
-// Function that returns actualy date in forman mm/dd/yy
+const mediaAllocation = {
+    "Social Media": ["www.youtube.com", "www.reddit.com", "www.instagram.com", "de-de.facebook.com", "www.tiktok.com", "www.artstation.com"],
+    "Work": ["github.com"], 
+    "Programming": ["developer.mozilla.org", "stackoverflow.com", "randomnerdtutorials.com", "realpython.com"],
+    "Search Engines": ["www.google.com", "duckduckgo.com", "yandex.com", "www.seznam.cz", "www.bing.com"]
+}
+
+// variable indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
+// initial to true that charts rendered at first time
+var changes = true;
+
+// Function that returns actualy date in the format mm/dd/yy
 function getToday() {
     var today = new Date();
     var dd = String(today.getDate()).padStart(2, '0');
@@ -81,6 +92,7 @@ async function updateList() {
 
 // Function for delete time of list entry
 function deleteEntry(entry) {
+    changes = true;
     var hostname = entry.children[1].children[0].innerText;
     console.log("Detected host to delete: ", hostname);
 
@@ -96,6 +108,7 @@ function deleteEntry(entry) {
 
 // Function for delete time of list entry
 function addIgnorelist(entry) {
+    changes = true;
     var hostname = entry.children[1].children[0].innerText;
     console.log("Detected host to add: ", hostname);
 
@@ -131,7 +144,8 @@ function toggleOptionsMenu(elmnt) {
 
 }
 
-window.addEventListener("click", function(event) {
+// generall click handling for list body
+document.getElementById("list_body").addEventListener("click", function(event) {
     // if item of options menu was clicked -> do action
     if (event.target.classList.contains('optionsmenu-item')) {
         if (event.target.innerText == 'Delete') {
@@ -149,5 +163,136 @@ window.addEventListener("click", function(event) {
         toggleOptionsMenu(event.target);
     }
 });
+
+// click handlers for buttons of action row and page navigation
+const main_page = document.getElementById("main_page");
+const static_page = document.getElementById("static_page");
+// const settings_page = document.getElementById("settings_page");
+
+document.getElementById("chart_btn").addEventListener("click", async function() {
+    // hide main page and show static page
+    main_page.style.height = "0px";
+    main_page.style.opacity = "0%";
+    static_page.style.height = "100%";
+    static_page.style.opacity = "100%";
+
+    if (!changes) {return};
+
+    // get stats of today
+    var today = getToday();
+    var items = await browser.storage.local.get(today);
+
+    var webpages = Object.entries(items[today])
+    .sort(([, a], [, b]) => b - a)
+    .map(([page]) => page);
+
+    var usages = Object.entries(items[today])
+    .sort(([, a], [, b]) => b - a)
+    .map(([, time]) => time);
+
+    // set common infos
+    document.getElementById("date_string").innerText = today;
+    document.getElementById("page_amount").innerText = webpages.length;
+    document.getElementById("time_spent").innerText = timeString(usages.reduce((c_sum, a) => c_sum + a, 0));
+
+    // set chart data
+    var usetimes = usages;
+    var page_names = webpages;
+
+    // compress all data behind the 9th position
+    if (usages.length > 10) {
+        var sum = usages.slice(9).reduce((c_sum, a) => c_sum + a, 0);
+        usetimes = usages.slice(0, 9).concat(sum)
+        page_names = webpages.slice(0, 9).concat("Other")
+    }
+
+    // render general stats
+    var barColors = [ "#7b1ff2", "#d6baf4", "#7ed1d6", "#fa7f43", "#6dd7a9", "#f372c2", "#8ee88c", "#d9b005", "#5fddcf", "#fbd9da"];
+
+    var elmnt = document.getElementById("generalOverview");
+    if (elmnt) {elmnt.remove()};
+    document.getElementById("general").innerHTML += `<canvas id="generalOverview"></canvas>`
+
+	new Chart("generalOverview", {
+        type: "pie",
+        data: {
+            labels: page_names,
+            datasets: [{
+                backgroundColor: barColors,
+                borderWidth: 0,
+                data: usetimes
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        color: '#fff'
+                    }
+                },
+                tooltip: {
+                    bodyColor: '#fff'
+                }
+            }
+        }
+    })
+
+    // render media stats
+    var elmnt = document.getElementById("mediaOverview");
+    if (elmnt) {elmnt.remove()};
+    document.getElementById("media").innerHTML += `<canvas id="mediaOverview"></canvas>`
+
+    var media_amounts = [["Social Media", 0, 0], ["Work", 0, 0], ["Programming", 0, 0], ["Search Engines", 0, 0], ["Other", 0, 0]];
+    for (var i=0; i < webpages.length; i++) {
+        var category = Object.keys(mediaAllocation).find(category => mediaAllocation[category].includes(webpages[i]));
+        if (!category) {category = "Other"};
+
+        var idx = media_amounts.findIndex(entry => entry[0] === category);
+        media_amounts[idx][1] += 1; // Increase website count for this category
+        media_amounts[idx][2] += usages[i] // add time of website to this category
+    }
+
+    var media_labels = media_amounts.map(entry => entry[0]);
+    var page_count = media_amounts.map(entry => entry[1]);
+    for (var i=0; i < page_count.length;i++) {media_labels[i] = media_labels[i] + ` (${page_count[i]} Pages)`}
+
+    new Chart("mediaOverview", {
+        type: "pie",
+        data: {
+            labels: media_labels,
+            datasets: [{
+                backgroundColor: barColors,
+                borderWidth: 0,
+                data: media_amounts.map(entry => entry[2])
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        color: '#fff'
+                    }
+                },
+                tooltip: {
+                    bodyColor: '#fff'
+                }
+            }
+        }
+    })
+
+    changes = false;
+})
+
+document.getElementById("arrow_back").addEventListener("click", function(event) {
+    // show main page and ihde static page
+    main_page.style.height = "100%";
+    main_page.style.opacity = "100%";
+    static_page.style.height = "0px";
+    static_page.style.opacity = "0%";
+})
 
 window.onload = ()=>{updateList()}
