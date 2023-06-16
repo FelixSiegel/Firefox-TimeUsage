@@ -73,16 +73,23 @@ async function deleteTime(url) {
     console.info(`Time successfully deleted! Url: ${url}`);
 }
 
-async function addTime(url, time) {
-    var today = getToday();
-    var item = await browser.storage.local.get(today);
+async function addTime(url, time, day=null, storage_obj=null) {
+    if (!day) {day = getToday()};
+    var item = storage_obj ? storage_obj : await browser.storage.local.get(day);
 
     var obj = {}; 
-    obj[today] = item[today] || { [today]: {} };
-    obj[today][url] = (obj[today][url] ?? 0) + time;
+    obj[day] = item[day] || { [day]: {} };
+    obj[day][url] = (item[day][url] ?? 0) + time;
 
-    await browser.storage.local.set(obj);
-    console.info(`Time successfully added! Url: ${url}, Time-added: ${time}`);
+    if (!storage_obj) { 
+        await browser.storage.local.set(obj); 
+        console.info(`Time successfully added to localStorage! Url: ${url}, Time-added: ${time}`);
+        return new Promise((resolve, _) => {resolve(null)});
+    } else {
+        for (var key in obj) { item[key] = obj[key] };
+        console.log(`Time successfully added to given Storage! ${url}, Time-added: ${time}`);
+        return new Promise((resolve, _) => {resolve(item)});
+    }    
 }
 
 async function addIgnore(url) {
@@ -96,17 +103,52 @@ async function addIgnore(url) {
     await browser.storage.local.set({"ignored": list});
 }
 
-async function updateTime() {
+async function updateTime(storage_obj = null) {
     // if c_url is defined -> calculate passed time -> sum to sign in local-storage
     var item = await browser.storage.local.get("c_url");
     console.log("[INFO]: Item-check: ", item, item.c_url)
     if (!item?.c_url) {
-        console.warn("[WARN]: c_url is currently undefined!"); return;
+        console.warn("[WARN]: c_url is currently undefined!"); return new Promise((resolve, _) => {resolve(storage_obj)});
     }
-    // get timestamp of tab getting active -> calculate elapsed time -> add to sign
-    var startTime = item.c_url[1]; var url = item.c_url[0];
-    var elapsedTime = (Date.now() / 1000 | 0) - startTime;
-    await addTime(url, elapsedTime);
+
+    var url = item.c_url[0];
+    var startTime = item.c_url[1]; 
+
+    var startDate = new Date(startTime*1000); 
+    var curDate = new Date(); 
+
+    function clearDate(date) {
+        // clear time from date
+        clear = new Date(date)
+        clear.setHours(0, 0, 0, 0);
+        return clear;
+    }
+
+    // If the start date is not today, add times to all days behind the current day
+    if (clearDate(startDate) !== clearDate(curDate)) {
+        var nextDate = new Date(clearDate(startDate));
+
+        while (nextDate < clearDate(curDate)) {
+            // increment date by one day
+            nextDate.setDate(nextDate.getDate() + 1);
+
+            // get time elapsed in seconds from startDate to nextDate
+            var passedTime = (nextDate - startDate) / 1000 | 0;
+            console.log(`Time for ${startDate}: ${passedTime} seconds`);
+            // add time to day
+            var dd = String(startDate.getDate()).padStart(2, '0');
+            var mm = String(startDate.getMonth() + 1).padStart(2, '0');
+            var yyyy = startDate.getFullYear();
+
+            storage_obj = await addTime(url, passedTime, (mm + '/' + dd + '/' + yyyy), storage_obj);
+
+            // increase startDate with passed time to subtract this day
+            startDate.setDate(clearDate(startDate).getDate() + 1);
+        }
+    } 
+    var elapsedTime = (curDate.getTime() - startDate.getTime()) / 1000 | 0;
+    storage_obj = await addTime(url, elapsedTime, null, storage_obj);
+    return new Promise((resolve, _) => {resolve(storage_obj)});
 }
 
 async function updateActive() {
@@ -182,5 +224,11 @@ browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
         console.log("Add url to ignore-list: ", data.url);
         await addIgnore(data.url);;
         return new Promise((resolve) => { resolve({state: "successful"}) });
+    }
+    else if (data.cmd == 'get_storage') {
+        // get current storage update it locally and send this new object (it will not be saved in localStorage)
+        var storage_obj = await browser.storage.local.get();
+        storage_obj = await updateTime(storage_obj);
+        return new Promise((resolve) => { resolve(storage_obj) });
     }
 });
