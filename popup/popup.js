@@ -33,10 +33,7 @@ function generateHTML(items) {
     html = "";
     for (i=0; i < items.length; i++) {
         html += `
-        <div class="list-item">
-            <div class="list-grade">
-                <p>#${i+1}</p>
-            </div>
+        <div class="list-item" data-time="${items[i][1]}">
             <div class="list-info">
                 <p class="hostname">${items[i][0]}</p>
                 <p class="timeused">Time used: ${timeString(items[i][1])}</p>
@@ -54,14 +51,21 @@ function generateHTML(items) {
 }
 
 // Function for updating common infos of list
-function update_commonInfos(url_list) {
-    console.log("URL-List: ", url_list)
-    var pages = url_list.length;
-    var total_sec = 0;
-    for (var i=0;i < pages; i++) {total_sec+=url_list[i][1]}
+function update_commonInfos() {
+    var item_list = document.getElementById("list_body");
+
+    var total_time = 0;
+    var total_pages = 0;
+
+    for (const item of item_list.children) {
+        console.log(item.dataset.time);
+        total_time += parseInt(item.dataset.time);
+        total_pages++;
+    }
+
     document.getElementById("date").innerText = getToday();
-    document.getElementById("totaltime").innerText = timeString(total_sec);
-    document.getElementById("pagestotal").innerText = pages + " Pages"
+    document.getElementById("totaltime").innerText = timeString(total_time);
+    document.getElementById("pagestotal").innerText = total_pages + " Pages";
 }
 
 // send update-request to background-script and add values to list -> render as html
@@ -73,25 +77,27 @@ async function updateList() {
     if (!storage) { console.log("Error when getting storage"); return }
     if (storage[today] == undefined) { console.log("No data for today"); return }
 
-    var list_data = []
+    console.log(storage)
+
+    var list_data = [];
     for (var key in storage[today]) {
-        console.log(`Item ${key}: ${storage[today][key]} seconds`)
-        list_data.push([key, storage[today][key]])
+        console.log(`Item ${key}: ${storage[today][key]} seconds`);
+        list_data.push([key, storage[today][key]]);
     }
-    
+
     // sort list by highest time to lowest time
-    list_data.sort((a, b) => b[1] - a[1])
+    list_data.sort((a, b) => b[1] - a[1]);
 
     // generate item-list for html
-    html = generateHTML(list_data)
+    html = generateHTML(list_data);
     document.getElementById("list_body").innerHTML = html;
-    update_commonInfos(list_data)
+    update_commonInfos();
 }
 
 // Function for delete time of list entry
 function deleteEntry(entry) {
     changes = true;
-    var hostname = entry.children[1].children[0].innerText;
+    var hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to delete: ", hostname);
 
     browser.runtime.sendMessage({cmd: "delete_entry", url: hostname}).then(
@@ -99,15 +105,18 @@ function deleteEntry(entry) {
             // if it wasnt successful -> log error
             if (response.state != "successful") {
                 console.error("Error when deleting time for " + hostname)
-            } else {updateList()}
+            } else {
+                entry.remove();
+                update_commonInfos()
+            }
         }
     )
 }
 
-// Function for delete time of list entry
+// Function to ignore entry in list from timing
 function addIgnorelist(entry) {
     changes = true;
-    var hostname = entry.children[1].children[0].innerText;
+    var hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to add: ", hostname);
 
     browser.runtime.sendMessage({cmd: "ignore_entry", url: hostname}).then(
@@ -115,7 +124,10 @@ function addIgnorelist(entry) {
             // if it wasnt successful -> log error
             if (response.state != "successful") {
                 console.error(`Error when adding entry (${hostname})to ignore list`)
-            } else {updateList()}
+            } else {
+                entry.remove();
+                update_commonInfos()
+            }
         }
     )
 }

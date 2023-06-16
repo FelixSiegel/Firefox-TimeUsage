@@ -82,7 +82,8 @@ body {
     padding: 2px;
     box-sizing: border-box;
     overflow-y: auto;
-    overflow-x: hidden
+    overflow-x: hidden;
+    counter-reset: item-counter 0;
 }
 
 .list-item {
@@ -95,15 +96,18 @@ body {
     box-sizing: border-box;
     overflow-x: clip;
     border-radius: 5px;
+    counter-increment: item-counter 1;
 }
 
-.list-grade {
+.list-item::before {
+    content: '#' counter(item-counter);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
     width: 14%;
     background-color: #363a3f;
+    font-weight: 600;
 }
 
 .list-info {
