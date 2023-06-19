@@ -58,7 +58,6 @@ function update_commonInfos() {
     var total_pages = 0;
 
     for (const item of item_list.children) {
-        console.log(item.dataset.time);
         total_time += parseInt(item.dataset.time);
         total_pages++;
     }
@@ -66,6 +65,7 @@ function update_commonInfos() {
     document.getElementById("date").innerText = getToday();
     document.getElementById("totaltime").innerText = timeString(total_time);
     document.getElementById("pagestotal").innerText = total_pages + " Pages";
+    console.log("Common infos updated");
 }
 
 // send update-request to background-script and add values to list -> render as html
@@ -77,11 +77,9 @@ async function updateList() {
     if (!storage) { console.log("Error when getting storage"); return }
     if (storage[today] == undefined) { console.log("No data for today"); return }
 
-    console.log(storage)
-
     var list_data = [];
     for (var key in storage[today]) {
-        console.log(`Item ${key}: ${storage[today][key]} seconds`);
+        // console.log(`Item ${key}: ${storage[today][key]} seconds`);
         list_data.push([key, storage[today][key]]);
     }
 
@@ -91,6 +89,7 @@ async function updateList() {
     // generate item-list for html
     html = generateHTML(list_data);
     document.getElementById("list_body").innerHTML = html;
+    console.log("HTML-List updated!");
     update_commonInfos();
 }
 
@@ -117,7 +116,7 @@ function deleteEntry(entry) {
 function addIgnorelist(entry) {
     changes = true;
     var hostname = entry.children[0].children[0].innerText;
-    console.log("Detected host to add: ", hostname);
+    console.log("Detected host to add ignore: ", hostname);
 
     browser.runtime.sendMessage({cmd: "ignore_entry", url: hostname}).then(
         (response) => {
@@ -174,4 +173,30 @@ document.getElementById("list_body").addEventListener("click", function(event) {
     }
 });
 
-window.onload = ()=>{updateList()}
+window.onload = updateList;
+
+// page handling of popup
+const main_page = document.getElementById("main_page");
+const stats_page = document.getElementById("static_page");
+const settings_page = document.getElementById("settings_page");
+
+function backToMainPage() {
+    // show main page and hide static page
+    main_page.style.height = "100%";
+    main_page.style.opacity = "100%";
+    stats_page.style.height = "0px";
+    stats_page.style.opacity = "0%";
+    settings_page.style.height = "0px";
+    settings_page.style.opacity = "0%";
+}
+
+document.querySelectorAll('.arrow_back').forEach(item => {item.onclick = backToMainPage})
+
+// load page settings
+async function loadSettings() {
+    var settings = await browser.storage.local.get('settings')
+
+    console.log("Settings loaded:", settings)
+}
+
+loadSettings();

@@ -1,6 +1,5 @@
 /**
- * Script handling the buttons of action bar in popup.html.
- * Its also responsible for the data visualisation.
+ * Script handling data visualization page in the popup-menu
  */
 
 
@@ -11,10 +10,6 @@ const mediaAllocation = {
     "Search Engines": ["www.google.com", "duckduckgo.com", "yandex.com", "www.seznam.cz", "www.bing.com"]
 }
 
-
-const main_page = document.getElementById("main_page");
-const stats_page = document.getElementById("static_page");
-// const settings_page = document.getElementById("settings_page");
 
 document.getElementById("chart_btn").addEventListener("click", async function() {
     // hide main page and show static page
@@ -169,12 +164,4 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     })
 
     changes = false;
-})
-
-document.getElementById("arrow_back").addEventListener("click", function() {
-    // show main page and ihde static page
-    main_page.style.height = "100%";
-    main_page.style.opacity = "100%";
-    stats_page.style.height = "0px";
-    stats_page.style.opacity = "0%";
 })
