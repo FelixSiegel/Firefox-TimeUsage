@@ -33,6 +33,8 @@ document.getElementById('primary-input').oninput = (e) => {
     root.style.setProperty('--primary-color', e.target.value);
     // save to localStorage
     let newData = {'settings': {'primaryColor': e.target.value}};
+    // change placeholder when color is changed
+    document.getElementById('primary-input').placeholder = getComputedStyle(root).getPropertyValue("--primary-color");
 
     let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
@@ -48,6 +50,8 @@ document.getElementById('secondary-input').oninput = (e) => {
     root.style.setProperty('--secondary-color', e.target.value);
     // save to localStorage
     let newData = {'settings': {'secondaryColor': e.target.value}};
+    // change placeholder when color is changed
+    document.getElementById('secondary-input').placeholder = getComputedStyle(root).getPropertyValue("--secondary-color");
 
     let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {

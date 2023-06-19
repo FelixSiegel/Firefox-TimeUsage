@@ -196,7 +196,19 @@ document.querySelectorAll('.arrow_back').forEach(item => {item.onclick = backToM
 async function loadSettings() {
     var settings = await browser.storage.local.get('settings')
 
-    console.log("Settings loaded:", settings)
+    var primaryColor = settings?.settings?.primaryColor;
+    var secondaryColor = settings?.settings?.secondaryColor;
+    
+    if (primaryColor) {
+        document.querySelector(':root')
+        .style.setProperty('--primary-color', primaryColor);
+        document.getElementById("primary-input").placeholder = primaryColor;
+    }
+    if (secondaryColor) {
+        document.querySelector(':root')
+        .style.setProperty('--secondary-color', secondaryColor);
+        document.getElementById("secondary-input").placeholder = secondaryColor;
+    }
 }
 
 loadSettings();
