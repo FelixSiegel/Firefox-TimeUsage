@@ -136,8 +136,8 @@ async function updateTime(storage_obj = null) {
     }
 
     // If the start date is not today, add times to all days behind the current day
-    if (clearDate(startDate) !== clearDate(curDate)) {
-        log("WARN", `Start date (${startDate}) is not today (${curDate}). Adding time to all days behind the current day.`, "orange");
+    if (clearDate(startDate).valueOf() !== clearDate(curDate).valueOf()) {
+        log("WARN", `Start date (${startDate.toLocaleDateString("en-US")}) is not today (${curDate.toLocaleDateString("en-US")}). Adding time to all days behind the current day.`, "orange");
         var nextDate = new Date(clearDate(startDate));
 
         while (nextDate < clearDate(curDate)) {
@@ -152,7 +152,6 @@ async function updateTime(storage_obj = null) {
             var yyyy = startDate.getFullYear();
             
             storage_obj = await addTime(url, passedTime, (mm + '/' + dd + '/' + yyyy), storage_obj);
-            log("INFO", `Time for ${startDate} added! Time: ${passedTime} seconds`);
 
             // increase startDate with passed time to subtract this day
             startDate.setDate(clearDate(startDate).getDate() + 1);
@@ -160,7 +159,6 @@ async function updateTime(storage_obj = null) {
     } 
     var elapsedTime = (curDate.getTime() - startDate.getTime()) / 1000 | 0;
     storage_obj = await addTime(url, elapsedTime, null, storage_obj);
-    log("INFO", `Time for ${startDate} added! Time: ${elapsedTime} seconds`);
     return new Promise((resolve, _) => {resolve(storage_obj)});
 }
 
