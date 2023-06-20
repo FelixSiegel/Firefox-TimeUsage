@@ -287,11 +287,13 @@ body {
 .settings-box {
     width: 100%;
     box-sizing: border-box;
-    margin: 10px 0px;
+    margin: 10px 0px 0px;
     background-color: #35383d;
     border: 1px solid #444444;
     border-radius: 5px;
 }
+
+.settings-box:last-child { margin: 10px 0px; }
 
 .settings-box .box-title {
     width: 100%;
@@ -372,4 +374,35 @@ body {
     width: 100%;
     font-size: 16px;
     outline: none;
+}
+
+.value-checkbox {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    align-items: center;
+    color: #f6f6f7;
+    margin: 5px 0px;
+}
+
+.checker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    min-height: 20px;
+    aspect-ratio: 1/1;
+    cursor: pointer;
+    background-color: #0000;
+    border: 1px #747f89 solid;
+    border-radius: 3px;
+    box-sizing: border-box;
+    margin: 6px 8px 6px 2px;
+    padding: 0;
+    outline: none;
+    transition: all 0.2s;
 }

@@ -194,10 +194,12 @@ document.querySelectorAll('.arrow_back').forEach(item => {item.onclick = backToM
 
 // load page settings
 async function loadSettings() {
-    var settings = await browser.storage.local.get('settings')
+    var storage = await browser.storage.local.get('settings')
 
-    var primaryColor = settings?.settings?.primaryColor;
-    var secondaryColor = settings?.settings?.secondaryColor;
+    console.log("Settings loaded: ", storage);
+
+    var primaryColor = storage?.settings?.primaryColor;
+    var secondaryColor = storage?.settings?.secondaryColor;
     
     if (primaryColor) {
         document.querySelector(':root')
@@ -209,6 +211,10 @@ async function loadSettings() {
         .style.setProperty('--secondary-color', secondaryColor);
         document.getElementById("secondary-input").placeholder = secondaryColor;
     }
+
+    var focus_detection = storage?.settings?.focusDetection;
+    if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
+    focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
 }
 
 loadSettings();
