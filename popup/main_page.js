@@ -1,5 +1,8 @@
 console.log("Hello from the popup.js");
 
+// const var represents the local browser storage
+const storageArea = browser.storage.local; 
+
 // variable indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
 // initial to true that charts rendered at first time
 var changes = true;
@@ -194,12 +197,13 @@ document.querySelectorAll('.arrow_back').forEach(item => {item.onclick = backToM
 
 // load page settings
 async function loadSettings() {
-    var storage = await browser.storage.local.get('settings')
+    var settings = (await storageArea.get('settings'))?.settings;
+    if (!settings) { console.log("No settings found"); return };
 
-    console.log("Settings loaded: ", storage);
+    console.log("Settings loaded: ", settings);
 
-    var primaryColor = storage?.settings?.primaryColor;
-    var secondaryColor = storage?.settings?.secondaryColor;
+    var primaryColor = settings?.primaryColor;
+    var secondaryColor = settings?.secondaryColor;
     
     if (primaryColor) {
         document.querySelector(':root')
@@ -212,11 +216,11 @@ async function loadSettings() {
         document.getElementById("secondary-input").placeholder = secondaryColor;
     }
 
-    var focus_detection = storage?.settings?.focusDetection;
+    var focus_detection = settings?.focusDetection;
     if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
     focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
 
-    var absent_detection = storage?.settings?.absentDetection;
+    var absent_detection = settings?.absentDetection;
     if (absent_detection == undefined) { absent_detection = true }; // default is true/activated
     absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
 
@@ -224,7 +228,7 @@ async function loadSettings() {
     var timeout_set = document.getElementById("timeout_set");
     absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
 
-    var inactivity_timeout = storage?.settings?.inactivityTimeout;
+    var inactivity_timeout = settings?.inactivityTimeout;
     if (inactivity_timeout == undefined) { inactivity_timeout = 2 * 60 }; // default is 2 min
     document.getElementById("hour_inp").value = Math.floor(inactivity_timeout / 3600);
     document.getElementById("min_inp").value = Math.floor((inactivity_timeout % 3600) / 60);

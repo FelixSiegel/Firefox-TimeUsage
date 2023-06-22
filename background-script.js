@@ -1,5 +1,8 @@
 console.log("Hello from background!");
 
+// storage area represents local browser storage
+const storageArea = browser.storage.local;
+
 // Function for better logging
 function log(type, msg, color="LawnGreen") {
     console.log(`%c[${type}]: `, `color: ${color};font-weight:bold;`, msg);
@@ -46,8 +49,8 @@ async function createNewSign() {
     var today = getToday();
 
     try {
-        var s_c_url = await browser.storage.local.get("c_url");
-        var item = await browser.storage.local.get(today);
+        var s_c_url = await storageArea.get("c_url");
+        var item = await storageArea.get(today);
     } catch (error) {
         log("ERROR", `Failed to get data from ${today} in browser.storage.local within createNewSign-Function. Error: \n ${error}`, "red")
         return;
@@ -63,32 +66,32 @@ async function createNewSign() {
     // finally add new value
     obj[today][url] = 0;
     // add new sign to local-storage
-    await browser.storage.local.set(obj);
+    await storageArea.set(obj);
     log("INFO", `New sign created! Url: ${url}`)
 }
 
 async function deleteTime(url) {
     log("FUNC", "Called deleteTime", "DodgerBlue")
     var today = getToday();
-    var item = await browser.storage.local.get(today);
+    var item = await storageArea.get(today);
     var obj = {}; obj[today] = item[today];
     // delete entry
     delete obj[today][url]
-    await browser.storage.local.set(obj);
+    await storageArea.set(obj);
 
     log("INFO", `Time successfully deleted for ${today}! Url: ${url}`)
 }
 
 async function addTime(url, time, day=null, storage_obj=null) {
     if (!day) {day = getToday()};
-    var item = storage_obj ? storage_obj : await browser.storage.local.get(day);
+    var item = storage_obj ? storage_obj : await storageArea.get(day);
 
     var obj = {}; 
     obj[day] = item[day] || { [day]: {} };
     obj[day][url] = (item[day][url] ?? 0) + time;
 
     if (!storage_obj) { 
-        await browser.storage.local.set(obj); 
+        await storageArea.set(obj); 
         log("INFO", `Time successfully added! \nUrl: ${url} | Date: ${day} | Time-added: ${time} | Storage: browser.storage.local`);
         return new Promise((resolve, _) => {resolve(null)});
     } else {
@@ -104,17 +107,17 @@ async function addIgnore(url) {
     // TODO: delete entry from all days -> currently it will only deleted from current day
     await deleteTime(url);
     // add it to ignore list in local-storage
-    var ignore_list = await browser.storage.local.get("ignored");
+    var ignore_list = await storageArea.get("ignored");
     var list = (Object.keys(ignore_list).length >= 1) ? ignore_list["ignored"] : [];
     list.push(url);
-    await browser.storage.local.set({"ignored": list});
+    await storageArea.set({"ignored": list});
     log("INFO", `Url to ignore was added: ${url}`)
 }
 
 async function updateTime(storage_obj = null) {
     log("FUNC", "Called updateTime", "DodgerBlue")
     // if c_url is defined -> calculate passed time -> sum to sign in local-storage
-    var item = await browser.storage.local.get("c_url");
+    var item = await storageArea.get("c_url");
     if (!item?.c_url) {
         log("WARN", "Can't update time! Current url (c_url) is undefined!", "orange");
         return new Promise((resolve, _) => {resolve(storage_obj)});
@@ -173,24 +176,24 @@ async function updateActive() {
     var url = tabs[0].url;
 
     // get current ignore-list
-    var ignore_list = await browser.storage.local.get("ignored");
+    var ignore_list = await storageArea.get("ignored");
     var check = check_url(url, ignore_list["ignored"] || []);
 
     // If url is not in whitelist -> return
     if (check === false) {
-        await browser.storage.local.remove("c_url"); 
+        await storageArea.remove("c_url"); 
         return;
     }
 
     // set current url to storage
-    await browser.storage.local.set({
+    await storageArea.set({
         "c_url": [extract_hostname(url), Date.now()/1000 | 0]
     });
     log("INFO", `Current url (c_url) updated to: ${url}`);
 
     // check if already list assignment exist
     var today = getToday()
-    var item = await browser.storage.local.get(today);
+    var item = await storageArea.get(today);
 
     // if no sign of that url in current date exist -> create new sign
     if (!item || !item[today] || !item[today][extract_hostname(url)]) {
@@ -223,7 +226,7 @@ browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
         // stop time adding by clearing current url
         log("MESSAGE", "Stop-Request received.", "orchid");
         try {
-            await browser.storage.local.remove("c_url");
+            await storageArea.remove("c_url");
             log("WARN", "Current url (c_url) was deleted after Stop-Request...");
         } catch (err) {
             log("ERROR", `Error occurred when deleting c_url from storage after Stop-Request. Error: \n${err}`);
@@ -245,7 +248,7 @@ browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
     else if (data.cmd == 'get_storage') {
         // get current storage update it locally and send this new object (it will not be saved in localStorage)
         log("MESSAGE", "get-storage-Request received.", "orchid");
-        var storage_obj = await browser.storage.local.get();
+        var storage_obj = await storageArea.get();
         storage_obj = await updateTime(storage_obj);
         return new Promise((resolve) => { resolve(storage_obj) });
     }

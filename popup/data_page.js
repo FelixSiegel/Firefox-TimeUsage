@@ -22,7 +22,7 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 
     // get stats of today
     var today = getToday();
-    var items = await browser.storage.local.get(today);
+    var items = await storageArea.get(today);
 
     // if no object of today exists -> hide chart-boxes and show no data-msg
     if (Object.entries(items) == 0) {

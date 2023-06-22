@@ -37,7 +37,6 @@ document.getElementById('primary-input').oninput = (e) => {
     // change placeholder when color is changed
     document.getElementById('primary-input').placeholder = getComputedStyle(root).getPropertyValue("--primary-color");
 
-    let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
         let new_settings = Object.assign({}, currentData?.settings, newData.settings);
         currentData.settings = new_settings;
@@ -54,7 +53,6 @@ document.getElementById('secondary-input').oninput = (e) => {
     // change placeholder when color is changed
     document.getElementById('secondary-input').placeholder = getComputedStyle(root).getPropertyValue("--secondary-color");
 
-    let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
         let new_settings = Object.assign({}, currentData?.settings, newData.settings);
         currentData.settings = new_settings;
@@ -79,7 +77,6 @@ function disable_checkbox(id) {
 }
 
 document.getElementById('focus_detection').onclick = async () => {
-    let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
         let focus_detection = currentData?.settings?.focusDetection;
         if (focus_detection == undefined) { focus_detection = true; } // default value
@@ -91,7 +88,6 @@ document.getElementById('focus_detection').onclick = async () => {
 }
 
 document.getElementById('absent_detection').onclick = async () => {
-    let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
         // set new date to browser.storage.local
         let absent_detection = currentData?.settings?.absentDetection;
@@ -118,7 +114,6 @@ function getTimeoutInput() {
 
 function updateTimeout() {
     let timeout = getTimeoutInput();
-    let storageArea = browser.storage.local;
     storageArea.get(null, (currentData) => {
         let new_settings = Object.assign({}, currentData?.settings, {'inactivityTimeout': timeout});
         currentData.settings = new_settings;
