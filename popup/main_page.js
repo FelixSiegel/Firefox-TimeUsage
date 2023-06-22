@@ -215,6 +215,20 @@ async function loadSettings() {
     var focus_detection = storage?.settings?.focusDetection;
     if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
     focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
+
+    var absent_detection = storage?.settings?.absentDetection;
+    if (absent_detection == undefined) { absent_detection = true }; // default is true/activated
+    absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
+
+    // show/hide settings for activity timeout if absent_detection is enabled/disabled
+    var timeout_set = document.getElementById("timeout_set");
+    absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
+
+    var inactivity_timeout = storage?.settings?.inactivityTimeout;
+    if (inactivity_timeout == undefined) { inactivity_timeout = 2 * 60 }; // default is 2 min
+    document.getElementById("hour_inp").value = Math.floor(inactivity_timeout / 3600);
+    document.getElementById("min_inp").value = Math.floor((inactivity_timeout % 3600) / 60);
+    document.getElementById("sec_inp").value = Math.floor((inactivity_timeout % 3600) % 60);
 }
 
 loadSettings();

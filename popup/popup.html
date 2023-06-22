@@ -119,6 +119,21 @@
                                 <div>Stop/resume measurement when the window loses/maintains focus</div>
                             </div>
                         </div>
+                        <div class="value-box">
+                            <div class="value-header">Activity Status</div>
+                            <div class="value-checkbox">
+                                <div id="absent_detection" class="checker" type="checkbox"></div>
+                                <div>Stop/resume timing when the user becomes inactive/active.</div>
+                            </div>
+                        </div>
+                        <div class="value-box" id="timeout_set">
+                            <div class="value-header">Inactive Timeout</div>
+                            <div class="value-time-chooser">
+                                <p><input id="hour_inp" type="text" placeholder="00" maxlength="2" title="Hours"></p>
+                                <p><input id="min_inp" type="text" placeholder="00" maxlength="2" title="Minutes"></p>
+                                <p><input id="sec_inp" type="text" placeholder="00" maxlength="2" title="Seconds"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

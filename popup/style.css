@@ -322,7 +322,7 @@ body {
     max-height: 0;
     overflow: hidden;
     opacity: 0%;
-    transition: all 100ms;
+    transition: all 150ms linear;
 }
 
 .box-active::after {
@@ -351,7 +351,11 @@ body {
     align-items: center;
     width: 100%;
     overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
+
+.value-line p {margin: 0; padding: 0;}
 
 .value-colorblock {
     width: 2.2rem;
@@ -405,4 +409,55 @@ body {
     padding: 0;
     outline: none;
     transition: all 0.2s;
+}
+
+.value-time-chooser {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #040405;
+    border-radius: 6px;
+    width: min-content;
+    overflow: hidden;
+    margin: 0.2rem 0.5rem 0.5rem;
+    padding: 0;
+}
+
+.value-time-chooser p {
+    display: flex;
+    flex-direction: row;
+    padding: 0; margin: 0; border: none;
+}
+
+.value-time-chooser p:not(:last-child)::after {
+    content: ':';
+    display: flex;
+    height: 2rem;
+    box-sizing: border-box;
+    color: #f6f6f7;
+    font-size: 16px;
+    line-height: calc(2rem - 20px);
+    padding: 10px 8px;
+    margin: 0;
+    outline: none;
+    border: none;
+}
+
+.value-time-chooser input {
+    height: 2rem;
+    width: calc(2rem + 10px);
+    box-sizing: border-box;
+    background-color: #2f3136;
+    color: #f6f6f7;
+    font-size: 16px;
+    line-height: calc(2rem - 20px);
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+    outline: none;
+    border: none;
+}
+
+.value-time-chooser input:invalid {
+    border: 1px solid red;
 }
