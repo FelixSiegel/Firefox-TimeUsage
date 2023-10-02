@@ -2,6 +2,10 @@ console.log("Hello from the popup.js");
 
 // const var represents the local browser storage
 const storageArea = browser.storage.local; 
+// const vars representing the pages of popup
+const main_page = document.getElementById("main_page");
+const stats_page = document.getElementById("static_page");
+const settings_page = document.getElementById("settings_page");
 
 // variable indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
 // initial to true that charts rendered at first time
@@ -32,7 +36,7 @@ function timeString(seconds) {
 }
 
 // Function to add list entries with data from background.js
-function generateHTML(items) {
+function generateRankingList(items) {
     html = "";
     for (i=0; i < items.length; i++) {
         html += `
@@ -90,7 +94,7 @@ async function updateList() {
     list_data.sort((a, b) => b[1] - a[1]);
 
     // generate item-list for html
-    html = generateHTML(list_data);
+    html = generateRankingList(list_data);
     document.getElementById("list_body").innerHTML = html;
     console.log("HTML-List updated!");
     update_commonInfos();
@@ -129,6 +133,7 @@ function addIgnorelist(entry) {
             } else {
                 entry.remove();
                 update_commonInfos()
+                add_ignore_entry(hostname);
             }
         }
     )
@@ -176,13 +181,7 @@ document.getElementById("list_body").addEventListener("click", function(event) {
     }
 });
 
-window.onload = updateList;
-
-// page handling of popup
-const main_page = document.getElementById("main_page");
-const stats_page = document.getElementById("static_page");
-const settings_page = document.getElementById("settings_page");
-
+// go back arrow handling in popup
 function backToMainPage() {
     // show main page and hide static page
     main_page.style.height = "100%";
@@ -192,47 +191,6 @@ function backToMainPage() {
     settings_page.style.height = "0px";
     settings_page.style.opacity = "0%";
 }
-
 document.querySelectorAll('.arrow_back').forEach(item => {item.onclick = backToMainPage})
 
-// load page settings
-async function loadSettings() {
-    var settings = (await storageArea.get('settings'))?.settings;
-    if (!settings) { console.log("No settings found"); return };
-
-    console.log("Settings loaded: ", settings);
-
-    var primaryColor = settings?.primaryColor;
-    var secondaryColor = settings?.secondaryColor;
-    
-    if (primaryColor) {
-        document.querySelector(':root')
-        .style.setProperty('--primary-color', primaryColor);
-        document.getElementById("primary-input").placeholder = primaryColor;
-    }
-    if (secondaryColor) {
-        document.querySelector(':root')
-        .style.setProperty('--secondary-color', secondaryColor);
-        document.getElementById("secondary-input").placeholder = secondaryColor;
-    }
-
-    var focus_detection = settings?.focusDetection;
-    if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
-    focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
-
-    var absent_detection = settings?.absentDetection;
-    if (absent_detection == undefined) { absent_detection = true }; // default is true/activated
-    absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
-
-    // show/hide settings for activity timeout if absent_detection is enabled/disabled
-    var timeout_set = document.getElementById("timeout_set");
-    absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
-
-    var inactivity_timeout = settings?.inactivityTimeout;
-    if (inactivity_timeout == undefined) { inactivity_timeout = 2 * 60 }; // default is 2 min
-    document.getElementById("hour_inp").value = Math.floor(inactivity_timeout / 3600);
-    document.getElementById("min_inp").value = Math.floor((inactivity_timeout % 3600) / 60);
-    document.getElementById("sec_inp").value = Math.floor((inactivity_timeout % 3600) % 60);
-}
-
-loadSettings();
+window.onload = updateList;

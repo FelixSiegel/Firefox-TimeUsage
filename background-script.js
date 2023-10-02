@@ -133,7 +133,7 @@ async function updateTime(storage_obj = null) {
 
     function clearDate(date) {
         // clear time from date
-        clear = new Date(date)
+        let clear = new Date(date)
         clear.setHours(0, 0, 0, 0);
         return clear;
     }

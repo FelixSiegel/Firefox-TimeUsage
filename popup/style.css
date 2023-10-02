@@ -319,9 +319,8 @@ body {
 .box-content {
     box-sizing: border-box;
     padding: 0px 8px;
-    max-height: 0;
+    max-height: 0px;
     overflow: hidden;
-    opacity: 0%;
     transition: all 150ms linear;
 }
 
@@ -333,6 +332,7 @@ body {
     width: 100%;
     box-sizing: border-box;
     padding: 10px;
+    font-size: 16px;
 }
 
 .value-header {
@@ -343,6 +343,13 @@ body {
     line-height: 16px;
     text-transform: uppercase;
     color: #fff;
+}
+
+.value-description {
+    margin: 0 0 0.5rem;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 300;
 }
 
 .value-line {
@@ -371,7 +378,7 @@ body {
     padding: 10px;
     height: 2rem;
     color: #f6f6f7;
-    background-color: #2f3136;
+    background-color: #2b2d31;
     border: 1px solid #040405;
     border-radius: 3px;
     box-sizing: border-box;
@@ -435,6 +442,7 @@ body {
     height: 2rem;
     box-sizing: border-box;
     color: #f6f6f7;
+    background-color: #35383d;
     font-size: 16px;
     line-height: calc(2rem - 20px);
     padding: 10px 8px;
@@ -447,7 +455,7 @@ body {
     height: 2rem;
     width: calc(2rem + 10px);
     box-sizing: border-box;
-    background-color: #2f3136;
+    background-color: #2b2d31;
     color: #f6f6f7;
     font-size: 16px;
     line-height: calc(2rem - 20px);
@@ -461,3 +469,55 @@ body {
 .value-time-chooser input:invalid {
     border: 1px solid red;
 }
+
+.value-listbox {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    max-height: 200px;
+    width: 100%;
+    overflow: auto;
+    background-color: #2b2d31;
+    border: 1px solid #040405;
+    border-radius: 6px;
+}
+
+.value-listitem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.3rem 0.5rem;
+    background-color: #35383d;
+    transition: all 200ms;
+}
+
+.value-listitem:not(:last-child) { border-bottom: 1px solid #444444; }
+
+.value-listitem p {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 400;
+    outline: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.value-listitem p:focus { border-bottom: 1px solid #ffffff7a; }
+
+.item-delete {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 300;
+    height: 1rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: all 200ms;
+}
+
+.item-delete:hover { color: #ba4a4a; }

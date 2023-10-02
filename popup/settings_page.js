@@ -18,13 +18,7 @@ settings_boxes.forEach(box => {
     box.addEventListener('click', (e) => {
         e.target.classList.toggle('box-active');
         var content = e.target.parentElement.children[1];
-        if (window.getComputedStyle(content).maxHeight != "0px") {
-            content.style.maxHeight = "0px";
-            content.style.opacity = "0%";
-        } else {
-            content.style.maxHeight = "500px";
-            content.style.opacity = "100%";
-        }
+        window.getComputedStyle(content).maxHeight == "0px" ? content.style.maxHeight = "500px" : content.style.maxHeight = "0px";
     })
 })
 
@@ -130,3 +124,87 @@ function checkTimeInp(target, min, max) {
 document.getElementById("hour_inp").oninput = (e) => { checkTimeInp(e.target, 0, 24); }
 document.getElementById("min_inp").oninput = (e) => { checkTimeInp(e.target, 0, 60); }
 document.getElementById("sec_inp").oninput = (e) => { checkTimeInp(e.target, 0, 60); }
+
+// Function to add new entry to ignore list in settings page
+function add_ignore_entry(host) {
+    var item = document.createElement("div");
+    item.classList.add("value-listitem");
+    item.dataset.value = host;
+    document.getElementById("ignore_list").appendChild(item);
+
+    var item_content = document.createElement("p");
+    item_content.setAttribute("contenteditable", "true");
+    item_content.setAttribute("aria-multiline", "false");
+    item_content.setAttribute("spellcheck", "false");
+    item_content.innerHTML = host;
+    // add event listener for editing the host/content
+    item_content.oninput = async (e) => {
+        let entry = e.target.parentElement;
+        var ignored = (await storageArea.get('ignored'))?.ignored;
+        if (!ignored) { return };
+        idx = ignored.indexOf(entry.dataset.value);
+        if (idx !== -1) { ignored[idx] = e.target.innerText; entry.dataset.value = e.target.innerText; }
+        storageArea.set({'ignored': ignored});
+    };    
+    item.appendChild(item_content);
+
+    var delete_btn = document.createElement("div");
+    delete_btn.classList.add("item-delete");
+    delete_btn.innerHTML = "&times";
+    delete_btn.onclick = async (e) => {
+        let entry = e.target.parentElement;
+        var ignored = (await storageArea.get('ignored'))?.ignored;
+        if (!ignored) { return };
+        ignored = ignored.filter(i => i != entry.dataset.value);
+        await storageArea.set({'ignored': ignored});
+        entry.remove();
+        console.log("Entry removed from ignore list!");
+    };
+    item.appendChild(delete_btn);
+}
+
+// Load settings to init page
+async function loadSettings() {
+    var settings = (await storageArea.get('settings'))?.settings;
+    if (!settings) { console.log("No settings found") }
+    else { console.log("Settings loaded: ", settings) }
+
+    var primaryColor = settings?.primaryColor;
+    var secondaryColor = settings?.secondaryColor;
+    
+    if (primaryColor) {
+        document.querySelector(':root')
+        .style.setProperty('--primary-color', primaryColor);
+        document.getElementById("primary-input").placeholder = primaryColor;
+    }
+    if (secondaryColor) {
+        document.querySelector(':root')
+        .style.setProperty('--secondary-color', secondaryColor);
+        document.getElementById("secondary-input").placeholder = secondaryColor;
+    }
+
+    var focus_detection = settings?.focusDetection;
+    if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
+    focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
+
+    var absent_detection = settings?.absentDetection;
+    if (absent_detection == undefined) { absent_detection = true }; // default is true/activated
+    absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
+
+    // show/hide settings for activity timeout if absent_detection is enabled/disabled
+    var timeout_set = document.getElementById("timeout_set");
+    absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
+
+    var inactivity_timeout = settings?.inactivityTimeout;
+    if (inactivity_timeout == undefined) { inactivity_timeout = 2 * 60 }; // default is 2 min
+    document.getElementById("hour_inp").value = Math.floor(inactivity_timeout / 3600);
+    document.getElementById("min_inp").value = Math.floor((inactivity_timeout % 3600) / 60);
+    document.getElementById("sec_inp").value = Math.floor((inactivity_timeout % 3600) % 60);
+
+    // load ignore list
+    var ignore_list = (await storageArea.get('ignored'))?.ignored;
+    if (!ignore_list) { console.log("No ignore list found"); }
+    else { ignore_list.forEach(element => {add_ignore_entry(element)}) }
+}
+
+loadSettings();
