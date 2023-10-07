@@ -482,6 +482,17 @@ body {
     border-radius: 6px;
 }
 
+.value-listitem-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background-color: #2b2d31;
+}
+
+.value-listitem-wrapper:not(:last-child) { border-bottom: 1px solid #444444; }
+
 .value-listitem {
     display: flex;
     flex-direction: row;
@@ -492,8 +503,6 @@ body {
     background-color: #35383d;
     transition: all 200ms;
 }
-
-.value-listitem:not(:last-child) { border-bottom: 1px solid #444444; }
 
 .value-listitem p {
     margin: 0;
@@ -521,3 +530,21 @@ body {
 }
 
 .item-delete:hover { color: #ba4a4a; }
+
+.changes-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 0.2rem 0.5rem 0.5rem;
+    gap: 2rem;
+    background: #35383d;
+}
+
+.changes-btn {
+    background-color: #35383d;
+    border: 1px solid #5a5a5a;
+    font-size: 12px;
+    font-weight: 300;
+    border-radius: 99999px;
+    padding: 0 0.5rem;
+    cursor: pointer;
+}

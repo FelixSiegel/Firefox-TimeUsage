@@ -127,10 +127,13 @@ document.getElementById("sec_inp").oninput = (e) => { checkTimeInp(e.target, 0, 
 
 // Function to add new entry to ignore list in settings page
 function add_ignore_entry(host) {
+    var item_wrapper = document.createElement("div");
+    item_wrapper.classList.add("value-listitem-wrapper");
     var item = document.createElement("div");
     item.classList.add("value-listitem");
     item.dataset.value = host;
-    document.getElementById("ignore_list").appendChild(item);
+    item_wrapper.appendChild(item);
+    document.getElementById("ignore_list").appendChild(item_wrapper);
 
     var item_content = document.createElement("p");
     item_content.setAttribute("contenteditable", "true");
@@ -139,13 +142,58 @@ function add_ignore_entry(host) {
     item_content.innerHTML = host;
     // add event listener for editing the host/content
     item_content.oninput = async (e) => {
-        let entry = e.target.parentElement;
-        var ignored = (await storageArea.get('ignored'))?.ignored;
-        if (!ignored) { return };
-        idx = ignored.indexOf(entry.dataset.value);
-        if (idx !== -1) { ignored[idx] = e.target.innerText; entry.dataset.value = e.target.innerText; }
-        storageArea.set({'ignored': ignored});
-    };    
+        var entry = e.target.parentElement;
+        var inp_el = e.target;
+
+        // check if entry is already in edit mode
+        if (entry.parentElement.children.length > 1) { return }
+
+        var changes_wrapper = document.createElement("div");
+        changes_wrapper.classList.add("changes-wrapper");
+        entry.parentElement.appendChild(changes_wrapper);
+        inp_el.style.borderBottom = "1px solid #ffffff7a"
+        
+        var dismiss_changes = document.createElement("div");
+        dismiss_changes.classList.add("changes-btn");
+        dismiss_changes.innerText = "Dismiss";
+        dismiss_changes.onclick = () => { 
+            entry.children[0].innerText = entry.dataset.value;
+            inp_el.style.borderBottom = ""
+            changes_wrapper.remove();
+        }
+        var save_changes = document.createElement("div");
+        save_changes.classList.add("changes-btn");
+        save_changes.innerText = "Save";
+        save_changes.onclick = async () => {
+            var ignored = (await storageArea.get('ignored'))?.ignored;
+            if (!ignored) { return };
+            inp_el.innerText = inp_el.innerText.trim()
+            idx = ignored.indexOf(entry.dataset.value);
+            if (idx !== -1) { 
+                // if value of dataset is in ignored (expected behavior) -> override it
+                ignored[idx] = inp_el.innerText; 
+            } else {
+                // if value isnt in dataset (very unexpected behavior) -> add it as a normal new value
+                ignored.push(inp_el.innerText);
+            }
+            entry.dataset.value = inp_el.innerText; 
+            storageArea.set({'ignored': ignored});
+
+            // also delete all counting-data that is may provided previously to this url
+            // get the list entry in ranking list to call deleteEntry()-Function
+            // to get entry search using xpath and the hostname of each entry
+            // https://stackoverflow.com/questions/3813294/how-to-get-element-by-innertext
+            var xpath = `//div/div/p[text()='${inp_el.innerText}' and contains(@class, 'hostname')]`
+            var list_entry = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (list_entry) { deleteEntry(list_entry.parentElement.parentElement) }
+
+            inp_el.style.borderBottom = ""
+            changes_wrapper.remove();
+        }
+        changes_wrapper.appendChild(dismiss_changes);
+        changes_wrapper.appendChild(save_changes);
+        
+    };
     item.appendChild(item_content);
 
     var delete_btn = document.createElement("div");
@@ -157,7 +205,7 @@ function add_ignore_entry(host) {
         if (!ignored) { return };
         ignored = ignored.filter(i => i != entry.dataset.value);
         await storageArea.set({'ignored': ignored});
-        entry.remove();
+        entry.parentElement.remove();
         console.log("Entry removed from ignore list!");
     };
     item.appendChild(delete_btn);
