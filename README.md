@@ -4,18 +4,10 @@ This is a simple browser addon for Firefox to see the time you spent per day in 
 
 **Note: The project is just beginning and is not yet fully functional!**
 
----
 
-**Table of contents:**  
+## Current Features
 
-[1. Current Features](#1-current-features)  
-[2. Planned functions](#2-planned-functions)  
-[3. Installing](#3-installing-from-source)  
-[4. Contact](#4-contact)  
-
-## 1. Current Features
-
-<img src="images/doc1.png" alt="Example Picture" width="350px"/>  
+<img src="images/doc1.png" alt="Example Picture" width="350px"/>
 
 *Example picture of the Addon-Popup*
 
@@ -31,26 +23,20 @@ What are the **current features**:
 
 **Screenshots:**
 
-<img src="images/doc2.png" alt="Example Picture" width="300px"/>  
+<img src="images/doc2.png" alt="Example Picture" width="300px"/>
 
 *Example of the options menu for individual entries*
 
-<img src="images/doc3.png" alt="Example Picture" width="300px"/> 
+<img src="images/doc3.png" alt="Example Picture" width="300px"/>
 
-<img src="images/doc4.png" alt="Example Picture" width="300px"/> 
+<img src="images/doc4.png" alt="Example Picture" width="300px"/>
 
 
 *Examples of the data visualisation*
 
+Planned features are listed in the Issue tab of this repository.
 
-
-## 2. Planned functions
-
-- Complete: Visualize statistics in charts
-- Create settings page for useful options for the user
-- Send push message when reaching optional time limit
-
-## 3. Installing from source
+## Installing from source
 
 1. Press `Ctrl` + `Shift` + `A` or go via Menu to AddOn & Theme tab of the Firefox-Settings
 2. Go to **Extensions** (1)
@@ -62,9 +48,10 @@ What are the **current features**:
 
 ![Image Steps: Load temporary Add-on](images/doc6.png)
 
-## 4. Contact
+## Contact
 
-If you find a bug, have a question, or have a feature request, feel free to contact me.
+If you find a bug, have a question, or have a feature request, feel free to contact me or add a issue to this repository.
 
-E-Mail: ninja.zero@seznam.cz  
-Discord: Ice Warrior#1274
+E-Mail: ninja.zero@seznam.cz
+Discord: Ice179
+Matrix: @ice-warrior:matrix.org
