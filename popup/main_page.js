@@ -9,14 +9,14 @@ const settings_page = document.getElementById("settings_page");
 
 // variable indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
 // initial to true that charts rendered at first time
-var changes = true;
+let changes = true;
 
 // Function that returns actualy date in the format mm/dd/yy
 function getToday() {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    let yyyy = today.getFullYear();
 
     return (mm + '/' + dd + '/' + yyyy)
 }
@@ -59,10 +59,10 @@ function generateRankingList(items) {
 
 // Function for updating common infos of list
 function update_commonInfos() {
-    var item_list = document.getElementById("list_body");
+    let item_list = document.getElementById("list_body");
 
-    var total_time = 0;
-    var total_pages = 0;
+    let total_time = 0;
+    let total_pages = 0;
 
     for (const item of item_list.children) {
         total_time += parseInt(item.dataset.time);
@@ -78,8 +78,8 @@ function update_commonInfos() {
 // send update-request to background-script and add values to list -> render as html
 async function updateList() {
     // get latest data
-    var today = getToday();
-    var storage = await browser.runtime.sendMessage({cmd: "get_storage"});
+    let today = getToday();
+    let storage = await browser.runtime.sendMessage({cmd: "get_storage"});
 
     if (!storage) { console.log("Error when getting storage"); return }
     if (storage[today] == undefined) {
@@ -89,8 +89,8 @@ async function updateList() {
         return;
     }
 
-    var list_data = [];
-    for (var key in storage[today]) {
+    let list_data = [];
+    for (const key in storage[today]) {
         // console.log(`Item ${key}: ${storage[today][key]} seconds`);
         list_data.push([key, storage[today][key]]);
     }
@@ -99,7 +99,7 @@ async function updateList() {
     list_data.sort((a, b) => b[1] - a[1]);
 
     // generate item-list for html
-    html = generateRankingList(list_data);
+    let html = generateRankingList(list_data);
     document.getElementById("list_body").innerHTML = html;
     console.log("HTML-List updated!");
     update_commonInfos();
@@ -108,7 +108,7 @@ async function updateList() {
 // Function for delete time of list entry
 function deleteEntry(entry) {
     changes = true;
-    var hostname = entry.children[0].children[0].innerText;
+    let hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to delete: ", hostname);
 
     browser.runtime.sendMessage({cmd: "delete_entry", url: hostname}).then(
@@ -127,7 +127,7 @@ function deleteEntry(entry) {
 // Function to ignore entry in list from timing
 function addIgnorelist(entry) {
     changes = true;
-    var hostname = entry.children[0].children[0].innerText;
+    let hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to add ignore: ", hostname);
 
     browser.runtime.sendMessage({cmd: "ignore_entry", url: hostname}).then(
@@ -146,19 +146,19 @@ function addIgnorelist(entry) {
 
 // Function closing Optionmenu
 function closeAllOptionmenus() {
-    var length = document.getElementsByClassName("opened").length;
-    for (var i=0; i < length; i++) {
+    let length = document.getElementsByClassName("opened").length;
+    for (let i=0; i < length; i++) {
         document.getElementsByClassName("opened")[0].classList.remove("opened")
     }
 }
 
 function toggleOptionsMenu(elmnt) {
     elmnt.classList.toggle('opened');
-    var menu = elmnt.parentElement.children[1];
+    let menu = elmnt.parentElement.children[1];
     menu.classList.toggle('opened')
 
     // check if menu oerflows in list-body
-    var bottom_max = document.getElementById("list_body").getBoundingClientRect().bottom
+    let bottom_max = document.getElementById("list_body").getBoundingClientRect().bottom
     // if overlows -> make up-menu
     if (menu.getBoundingClientRect().bottom > bottom_max) {menu.classList.add("up-menu")}
     // else make default down-menu

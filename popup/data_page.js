@@ -21,32 +21,32 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     if (!changes) {return};
 
     // get stats of today
-    var today = getToday();
-    var items = await storageArea.get(today);
+    let today = getToday();
+    let items = await storageArea.get(today);
 
     // if no object of today exists -> hide chart-boxes and show no data-msg
     if (Object.entries(items) == 0) {
         if (document.getElementById("no_data")) {return;}
         // hide boxes
-        var chart_boxes = document.getElementsByClassName("chart-box");
-        for (var box of chart_boxes) {box.style.display = "none"}
+        let chart_boxes = document.getElementsByClassName("chart-box");
+        for (const box of chart_boxes) {box.style.display = "none"}
         // add no data string to page content
         document.getElementById("stats_pagecontent").innerHTML += '<p id="no_data" class="no-data">No data for today!</p>';
         return;
     } else {
         // show boxes
-        var chart_boxes = document.getElementsByClassName("chart-box");
-        for (var box of chart_boxes) {box.style.display = "block"}
+        let chart_boxes = document.getElementsByClassName("chart-box");
+        for (const box of chart_boxes) {box.style.display = "block"}
         // remove no data string from page content
-        var no_data = document.getElementById("no_data");
+        let no_data = document.getElementById("no_data");
         if (no_data) {no_data.remove()}
     }
 
-    var webpages = Object.entries(items[today])
+    let webpages = Object.entries(items[today])
     .sort(([, a], [, b]) => b - a)
     .map(([page]) => page);
 
-    var usages = Object.entries(items[today])
+    let usages = Object.entries(items[today])
     .sort(([, a], [, b]) => b - a)
     .map(([, time]) => time);
 
@@ -65,20 +65,20 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     }
 
     // set chart data
-    var usetimes = usages;
-    var page_names = webpages;
+    let usetimes = usages;
+    let page_names = webpages;
 
     // compress all data behind the 9th position
     if (usages.length > 10) {
-        var sum = usages.slice(9).reduce((c_sum, a) => c_sum + a, 0);
+        let sum = usages.slice(9).reduce((c_sum, a) => c_sum + a, 0);
         usetimes = usages.slice(0, 9).concat(sum)
         page_names = webpages.slice(0, 9).concat("Other")
     }
 
     // render general stats
-    var barColors = [ "#7b1ff2", "#d6baf4", "#7ed1d6", "#fa7f43", "#6dd7a9", "#f372c2", "#8ee88c", "#d9b005", "#5fddcf", "#fbd9da"];
+    let barColors = [ "#7b1ff2", "#d6baf4", "#7ed1d6", "#fa7f43", "#6dd7a9", "#f372c2", "#8ee88c", "#d9b005", "#5fddcf", "#fbd9da"];
 
-    var elmnt = document.getElementById("generalOverview");
+    let elmnt = document.getElementById("generalOverview");
     if (elmnt) {elmnt.remove()};
     document.getElementById("general").innerHTML += `<canvas id="generalOverview"></canvas>`
 
@@ -109,24 +109,24 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     })
 
     // render media stats
-    var elmnt = document.getElementById("mediaOverview");
+    elmnt = document.getElementById("mediaOverview");
     if (elmnt) {elmnt.remove()};
     document.getElementById("media").innerHTML += `<canvas id="mediaOverview"></canvas>`
 
-    var media_amounts = [["Social Media", 0, 0], ["Work", 0, 0], ["Programming", 0, 0], ["Search Engines", 0, 0], ["Other", 0, 0]];
-    for (var i=0; i < webpages.length; i++) {
-        var category = Object.keys(mediaAllocation).find(category => mediaAllocation[category].includes(webpages[i]));
+    let media_amounts = [["Social Media", 0, 0], ["Work", 0, 0], ["Programming", 0, 0], ["Search Engines", 0, 0], ["Other", 0, 0]];
+    for (let i=0; i < webpages.length; i++) {
+        let category = Object.keys(mediaAllocation).find(category => mediaAllocation[category].includes(webpages[i]));
         if (!category) {category = "Other"};
 
-        var idx = media_amounts.findIndex(entry => entry[0] === category);
+        let idx = media_amounts.findIndex(entry => entry[0] === category);
         media_amounts[idx][1] += 1; // Increase website count for this category
         media_amounts[idx][2] += usages[i] // add time of website to this category
     }
 
-    var media_labels = media_amounts.map(entry => entry[0]);
-    var page_count = media_amounts.map(entry => entry[1]);
-    var page_times = media_amounts.map(entry => entry[2]);
-    for (var i=0; i < page_count.length;i++) {
+    let media_labels = media_amounts.map(entry => entry[0]);
+    let page_count = media_amounts.map(entry => entry[1]);
+    let page_times = media_amounts.map(entry => entry[2]);
+    for (let i=0; i < page_count.length;i++) {
         if (page_count[i] === 0) {
             media_labels.splice(i, 1);
             page_count.splice(i, 1);
