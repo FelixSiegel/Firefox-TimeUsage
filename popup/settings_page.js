@@ -125,6 +125,36 @@ document.getElementById("hour_inp").oninput = (e) => { checkTimeInp(e.target, 0,
 document.getElementById("min_inp").oninput = (e) => { checkTimeInp(e.target, 0, 60); }
 document.getElementById("sec_inp").oninput = (e) => { checkTimeInp(e.target, 0, 60); }
 
+// handling input field for ignore list entries
+document.getElementById("add_blacklist_value_inp").onkeydown = (e) => {
+    if (e.target.value == "") { return }
+    if (e.key == "Enter") {
+        update_ignorelist(e.target.value);
+        e.target.value = "";
+    }
+}
+
+document.getElementById("add_blacklist_value_btn").onclick = (e) => {
+    var inp = document.getElementById("add_blacklist_value_inp");
+    if (inp.value == "") { return }
+    update_ignorelist(inp.value);
+    inp.value = "";
+}
+
+function update_ignorelist(host) {
+    browser.runtime.sendMessage({cmd: "ignore_entry", url: host}).then(
+        (response) => {
+            // if it wasnt successful -> log error
+            if (response.state != "successful") {
+                console.error(`Error when adding entry (${host})to ignore list`)
+            } else {
+                update_commonInfos()
+                add_ignore_entry(host);
+            }
+        }
+    )
+}
+
 // Function to add new entry to ignore list in settings page
 function add_ignore_entry(host) {
     var item_wrapper = document.createElement("div");
@@ -152,11 +182,11 @@ function add_ignore_entry(host) {
         changes_wrapper.classList.add("changes-wrapper");
         entry.parentElement.appendChild(changes_wrapper);
         inp_el.style.borderBottom = "1px solid #ffffff7a"
-        
+
         var dismiss_changes = document.createElement("div");
         dismiss_changes.classList.add("changes-btn");
         dismiss_changes.innerText = "Dismiss";
-        dismiss_changes.onclick = () => { 
+        dismiss_changes.onclick = () => {
             entry.children[0].innerText = entry.dataset.value;
             inp_el.style.borderBottom = ""
             changes_wrapper.remove();
@@ -169,14 +199,14 @@ function add_ignore_entry(host) {
             if (!ignored) { return };
             inp_el.innerText = inp_el.innerText.trim()
             idx = ignored.indexOf(entry.dataset.value);
-            if (idx !== -1) { 
+            if (idx !== -1) {
                 // if value of dataset is in ignored (expected behavior) -> override it
-                ignored[idx] = inp_el.innerText; 
+                ignored[idx] = inp_el.innerText;
             } else {
                 // if value isnt in dataset (very unexpected behavior) -> add it as a normal new value
                 ignored.push(inp_el.innerText);
             }
-            entry.dataset.value = inp_el.innerText; 
+            entry.dataset.value = inp_el.innerText;
             storageArea.set({'ignored': ignored});
 
             // also delete all counting-data that is may provided previously to this url
@@ -192,7 +222,7 @@ function add_ignore_entry(host) {
         }
         changes_wrapper.appendChild(dismiss_changes);
         changes_wrapper.appendChild(save_changes);
-        
+
     };
     item.appendChild(item_content);
 
@@ -219,7 +249,7 @@ async function loadSettings() {
 
     var primaryColor = settings?.primaryColor;
     var secondaryColor = settings?.secondaryColor;
-    
+
     if (primaryColor) {
         document.querySelector(':root')
         .style.setProperty('--primary-color', primaryColor);
