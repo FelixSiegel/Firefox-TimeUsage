@@ -5,7 +5,7 @@
 
 const mediaAllocation = {
     "Social Media": ["www.youtube.com", "www.reddit.com", "www.instagram.com", "de-de.facebook.com", "www.tiktok.com", "www.artstation.com"],
-    "Work": ["github.com"], 
+    "Work": ["github.com"],
     "Programming": ["developer.mozilla.org", "stackoverflow.com", "randomnerdtutorials.com", "realpython.com"],
     "Search Engines": ["www.google.com", "duckduckgo.com", "yandex.com", "www.seznam.cz", "www.bing.com"]
 }
@@ -31,7 +31,7 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
         var chart_boxes = document.getElementsByClassName("chart-box");
         for (var box of chart_boxes) {box.style.display = "none"}
         // add no data string to page content
-        document.getElementById("stats_pagecontent").innerHTML += '<p id="no_data">No data for today!</p>';
+        document.getElementById("stats_pagecontent").innerHTML += '<p id="no_data" class="no-data">No data for today!</p>';
         return;
     } else {
         // show boxes

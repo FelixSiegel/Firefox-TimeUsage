@@ -1,7 +1,7 @@
 console.log("Hello from the popup.js");
 
 // const var represents the local browser storage
-const storageArea = browser.storage.local; 
+const storageArea = browser.storage.local;
 // const vars representing the pages of popup
 const main_page = document.getElementById("main_page");
 const stats_page = document.getElementById("static_page");
@@ -25,7 +25,7 @@ function getToday() {
 function timeString(seconds) {
     // 0 seconds
     if (seconds <= 0) {return "0 seconds"}
-    // less then 10 seconds 
+    // less then 10 seconds
     if (seconds < 5) {return "a few seconds"}
     // less then a minute
     else if (seconds < 60) {return `${seconds}sec`}
@@ -82,7 +82,12 @@ async function updateList() {
     var storage = await browser.runtime.sendMessage({cmd: "get_storage"});
 
     if (!storage) { console.log("Error when getting storage"); return }
-    if (storage[today] == undefined) { console.log("No data for today"); return }
+    if (storage[today] == undefined) {
+        console.log("No data for today");
+        update_commonInfos();
+        document.getElementById("list_body").innerHTML = `<p class="no-data">No data for today</p>`;
+        return;
+    }
 
     var list_data = [];
     for (var key in storage[today]) {
