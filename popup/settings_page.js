@@ -150,6 +150,10 @@ function update_ignorelist(host) {
             } else {
                 update_commonInfos()
                 add_ignore_entry(host);
+
+                var xpath = `//div/div/p[text()='${host}' and contains(@class, 'hostname')]`
+                var list_entry = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                if (list_entry) { deleteEntry(list_entry.parentElement.parentElement) }
             }
         }
     )
