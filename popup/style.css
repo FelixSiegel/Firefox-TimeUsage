@@ -195,7 +195,7 @@ body {
     border-top: 2px #23282f solid;
     box-sizing: border-box;
     background: rgb(22,27,34);
-    background: linear-gradient(125deg, #161b22 0%, #272c33 50%, #161b22 100%); 
+    background: linear-gradient(125deg, #161b22 0%, #272c33 50%, #161b22 100%);
 }
 
 .action-btn {
@@ -226,8 +226,8 @@ body {
 
 .action-btn a {
     display: flex;
-    justify-content: center; 
-    align-items: center ; 
+    justify-content: center;
+    align-items: center ;
     height: 80%;
     width: auto;
     border-radius: 100%;
@@ -387,6 +387,12 @@ body {
     outline: none;
 }
 
+.value-input:not(:last-child) {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-right: none;
+}
+
 .value-checkbox {
     display: flex;
     flex-direction: row;
@@ -480,6 +486,7 @@ body {
     background-color: #2b2d31;
     border: 1px solid #040405;
     border-radius: 6px;
+    margin-bottom: 0.5rem;
 }
 
 .value-listitem-wrapper {
@@ -547,4 +554,27 @@ body {
     border-radius: 99999px;
     padding: 0 0.5rem;
     cursor: pointer;
+}
+
+.value-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    height: 2rem;
+    color: #f6f6f7;
+    background-color: #35383d;
+    border: 1px solid #040405;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 16px;
+    outline: none;
+    cursor: pointer;
+}
+
+.value-button:not(:first-child) {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-left: none;
 }
