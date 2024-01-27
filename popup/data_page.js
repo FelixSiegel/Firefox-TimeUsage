@@ -10,7 +10,7 @@ const mediaAllocation = {
     "Search Engines": ["www.google.com", "duckduckgo.com", "yandex.com", "www.seznam.cz", "www.bing.com"]
 }
 
-
+// Generate the static page (pie charts, infos, ...)
 document.getElementById("chart_btn").addEventListener("click", async function() {
     // hide main page and show static page
     main_page.style.height = "0px";
@@ -165,3 +165,16 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 
     changes = false;
 })
+
+// generate the calendar
+const calendarBody = document.querySelector('.calendar-body');
+const currentDate = new Date();
+const currentMonth = currentDate.getMonth();
+const currentYear = currentDate.getFullYear();
+const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+for (let day = 1; day <= daysInMonth; day++) {
+    const li = document.createElement('li');
+    li.textContent = day;
+    calendarBody.appendChild(li);
+}

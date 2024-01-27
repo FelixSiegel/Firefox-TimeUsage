@@ -62,6 +62,37 @@
                 </div>
             </div>
             <div class="page-content" id="stats_pagecontent">
+                <div class="calendar-selector-wrapper">
+                    <div class="calendar-selector-bar">
+                        <div class="calendar-selector" data-func="slide">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="60%" fill="#8b949e" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
+                            </svg>
+                        </div>
+                        <div class="calendar-selector" data-func="selector"></div>
+                        <div class="calendar-selector" data-func="slide">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="60%" fill="#8b949e" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="calendar">
+                        <ul class="calendar-weekdays">
+                            <li>Mo</li>
+                            <li>Tu</li>
+                            <li>We</li>
+                            <li>Th</li>
+                            <li>Fr</li>
+                            <li>Sa</li>
+                            <li>Su</li>
+                        </ul>
+                        <ul class="calendar-body">
+                            <!--
+                                Here will the calendar be placed by js
+                            -->
+                        </ul>
+                    </div>
+                </div>
                 <div class="chart-box">
                     <p style="font-weight: 600;">Common infos for <a id="date_string" style="font-weight: 600 !important;"></a></p>
                     <p style="font-weight: 300;"><a id="page_amount"></a> page(s) used today...<br><a id="time_spent"></a> spent today...</p>
