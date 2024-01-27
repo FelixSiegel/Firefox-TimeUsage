@@ -169,12 +169,16 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 // generate the calendar
 const calendarBody = document.querySelector('.calendar-body');
 const currentDate = new Date();
+const currentDay = currentDate.getDate();
 const currentMonth = currentDate.getMonth();
 const currentYear = currentDate.getFullYear();
 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
 for (let day = 1; day <= daysInMonth; day++) {
-    const li = document.createElement('li');
-    li.textContent = day;
-    calendarBody.appendChild(li);
+    const value = (day === currentDay) ? document.createElement('a') : document.createElement('li');
+    value.innerHTML = day;
+    if (day === currentDay) {
+        value.classList.add('active');
+    }
+    calendarBody.appendChild(value);
 }

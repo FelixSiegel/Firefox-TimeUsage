@@ -406,6 +406,7 @@ calendar-selector[data-func="slide"]:hover {
     place-items: center;
     width: 100%;
     height: 30px;
+    color: #ffffff7f;
 }
 
 .calendar-body {
@@ -417,9 +418,37 @@ calendar-selector[data-func="slide"]:hover {
     width: 100%;
 }
 
-.calendar-body li {
-    width: 100%;
+.calendar-body li, a {
+    display: grid;
+    place-items: center;
     text-align: center;
+    font-weight: 300;
+    height: 24px;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.calendar-body li:hover { background-color: #30363d; }
+
+.calendar-body a.active {
+    background-color: #8b949e;
+    border-radius: 0px;
+    margin: 0;
+    width: 100%;
+    aspect-ratio: auto;
+}
+
+.calendar-body a.active:first-of-type {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+}
+
+.calendar-body a.active:last-of-type {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
 }
 
 .value-box {
