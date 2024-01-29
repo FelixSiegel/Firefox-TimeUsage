@@ -3,6 +3,95 @@
  */
 
 
+// generate the calendar
+const dateSelector = document.querySelector('#date_selector');
+const startDate = document.querySelector('#start_date');
+const endDate = document.querySelector('#end_date');
+const calendarHead = document.querySelector('#calendar_month');
+const calendarBody = document.querySelector('.calendar-body');
+generateCalender();
+
+function generateCalender() {
+    // get timestamps of selected time period
+    let start_timestamp = startDate.getAttribute('data-timestamp');
+    let end_timestamp = endDate.getAttribute('data-timestamp');
+    let selected_timestamp = calendarHead.getAttribute('data-timestamp');
+
+    if (!start_timestamp) {
+        start_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        startDate.setAttribute('data-timestamp', start_timestamp);
+    }
+
+    if (!end_timestamp) {
+        end_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        endDate.setAttribute('data-timestamp', end_timestamp);
+    }
+
+    if (!selected_timestamp) {
+        selected_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        calendarHead.setAttribute('data-timestamp', selected_timestamp);
+    }
+
+    let start_date = new Date(Number(start_timestamp));
+    let end_date = new Date(Number(end_timestamp));
+    let selectedDate = new Date(Number(selected_timestamp));
+    let selectedMonth = selectedDate.getMonth();
+    let selectedYear = selectedDate.getFullYear();
+    let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+    // generate calendar head with month and year
+    calendarHead.innerHTML = `${selectedDate.toLocaleString('default', { month: 'long' })} ${selectedYear}`;
+
+    // generate calendar body with days from selected month
+    calendarBody.innerHTML = '';
+    // add placeholder days for first week
+    for (let day = 1; day < new Date(selectedYear, selectedMonth, 1).getDay(); day++) {
+        calendarBody.appendChild(document.createElement('li'));
+    }
+    // add days of month
+    for (let day = 1; day <= daysInMonth; day++) {
+        let date = new Date(selectedYear, selectedMonth, day);
+        const value = (start_date <= date && date <= end_date) ? document.createElement('a') : document.createElement('li');
+        value.innerHTML = day;
+        if (start_date <= date && date <= end_date) {
+            value.classList.add('active');
+        }
+        calendarBody.appendChild(value);
+    }
+
+    updateTimeperiod(start_date, end_date);
+}
+
+// event listener for calendar month change buttons
+const prev_month = document.getElementById("calendar_prev_month");
+prev_month.addEventListener('click', () => {
+    console.log("Go to previous month...")
+    let timestamp = calendarHead.getAttribute('data-timestamp');
+    let date = new Date(Number(timestamp));
+    date.setMonth(date.getMonth() - 1);
+    calendarHead.setAttribute('data-timestamp', date.getTime());
+    generateCalender();
+});
+
+const next_month = document.getElementById("calendar_next_month");
+next_month.addEventListener('click', () => {
+    console.log("Go to next month...")
+    let timestamp = calendarHead.getAttribute('data-timestamp');
+    let date = new Date(Number(timestamp));
+    date.setMonth(date.getMonth() + 1);
+    calendarHead.setAttribute('data-timestamp', date.getTime());
+    generateCalender();
+});
+
+// function updating the time period for the statistic
+function updateTimeperiod(start, end) {
+    startDate.setAttribute('data-timestamp', start.getTime());
+    endDate.setAttribute('data-timestamp', end.getTime());
+    dateSelector.innerText = `${start.toLocaleDateString()}${start===end ? " - " + end.toLocaleDateString() : ""}`;
+    changes = true;
+}
+
+
 const mediaAllocation = {
     "Social Media": ["www.youtube.com", "www.reddit.com", "www.instagram.com", "de-de.facebook.com", "www.tiktok.com", "www.artstation.com"],
     "Work": ["github.com"],
@@ -10,8 +99,10 @@ const mediaAllocation = {
     "Search Engines": ["www.google.com", "duckduckgo.com", "yandex.com", "www.seznam.cz", "www.bing.com"]
 }
 
-// Generate the static page (pie charts, infos, ...)
-document.getElementById("chart_btn").addEventListener("click", async function() {
+// Generate the statistic page (pie charts, infos, ...)
+document.getElementById("chart_btn").addEventListener("click", buildStats)
+
+async function buildStats() {
     // hide main page and show static page
     main_page.style.height = "0px";
     main_page.style.opacity = "0%";
@@ -20,9 +111,10 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 
     if (!changes) {return};
 
-    // get stats of today
-    let today = getToday();
-    let items = await storageArea.get(today);
+    // get stats of selected day
+    // TODO: change to selected time period instead of only start day
+    let day = getToday(new Date(Number(startDate.getAttribute('data-timestamp'))));
+    let items = await storageArea.get(day);
 
     // if no object of today exists -> hide chart-boxes and show no data-msg
     if (Object.entries(items) == 0) {
@@ -42,16 +134,16 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
         if (no_data) {no_data.remove()}
     }
 
-    let webpages = Object.entries(items[today])
+    let webpages = Object.entries(items[day])
     .sort(([, a], [, b]) => b - a)
     .map(([page]) => page);
 
-    let usages = Object.entries(items[today])
+    let usages = Object.entries(items[day])
     .sort(([, a], [, b]) => b - a)
     .map(([, time]) => time);
 
     // set common infos
-    document.getElementById("date_string").innerText = today;
+    document.getElementById("date_string").innerText = day;
     document.getElementById("page_amount").innerText = (webpages.length) ? webpages.length : 0;
     document.getElementById("time_spent").innerText = (usages) ? timeString(usages.reduce((c_sum, a) => c_sum + a, 0)) : "0sec";
 
@@ -82,7 +174,7 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     if (elmnt) {elmnt.remove()};
     document.getElementById("general").innerHTML += `<canvas id="generalOverview"></canvas>`
 
-	new Chart("generalOverview", {
+    new Chart("generalOverview", {
         type: "pie",
         data: {
             labels: page_names,
@@ -164,66 +256,4 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
     })
 
     changes = false;
-})
-
-// generate the calendar
-const calendarHead = document.querySelector('#calendar_month');
-const calendarBody = document.querySelector('.calendar-body');
-generateCalender();
-
-function generateCalender() {
-    let selected_timestamp = calendarHead.getAttribute('data-timestamp');
-
-    if (!selected_timestamp) {
-        let timestamp = new Date().getTime();
-        calendarHead.setAttribute('data-timestamp', timestamp);
-        selected_timestamp = timestamp;
-    }
-
-    let selectedDate = new Date(Number(selected_timestamp));
-    let selectedMonth = selectedDate.getMonth();
-    let selectedYear = selectedDate.getFullYear();
-    let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-    let currentDate = new Date(new Date().setHours(0, 0, 0, 0)).toString();
-
-    // generate calendar head with month and year
-    calendarHead.innerHTML = `${selectedDate.toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-
-    // generate calendar body with days from selected month
-    calendarBody.innerHTML = '';
-    // add placeholder days for first week
-    for (let day = 1; day < new Date(selectedYear, selectedMonth, 1).getDay(); day++) {
-        calendarBody.appendChild(document.createElement('li'));
-    }
-    // add days of month
-    for (let day = 1; day <= daysInMonth; day++) {
-        let date = new Date(selectedYear, selectedMonth, day).toString();
-        const value = (date === currentDate) ? document.createElement('a') : document.createElement('li');
-        value.innerHTML = day;
-        if (date === currentDate) {
-            value.classList.add('active');
-        }
-        calendarBody.appendChild(value);
-    }
 }
-
-// event listener for calendar month change buttons
-const prev_month = document.getElementById("calendar_prev_month");
-prev_month.addEventListener('click', () => {
-    console.log("Go to previous month...")
-    let timestamp = calendarHead.getAttribute('data-timestamp');
-    let date = new Date(Number(timestamp));
-    date.setMonth(date.getMonth() - 1);
-    calendarHead.setAttribute('data-timestamp', date.getTime());
-    generateCalender();
-});
-
-const next_month = document.getElementById("calendar_next_month");
-next_month.addEventListener('click', () => {
-    console.log("Go to next month...")
-    let timestamp = calendarHead.getAttribute('data-timestamp');
-    let date = new Date(Number(timestamp));
-    date.setMonth(date.getMonth() + 1);
-    calendarHead.setAttribute('data-timestamp', date.getTime());
-    generateCalender();
-});

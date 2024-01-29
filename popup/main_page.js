@@ -12,8 +12,8 @@ const settings_page = document.getElementById("settings_page");
 let changes = true;
 
 // Function that returns actualy date in the format mm/dd/yy
-function getToday() {
-    let today = new Date();
+function getToday(date=new Date()) {
+    let today = date;
     let dd = String(today.getDate()).padStart(2, '0');
     let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     let yyyy = today.getFullYear();
