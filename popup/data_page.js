@@ -54,15 +54,13 @@ function generateCalender() {
         let date = new Date(selectedYear, selectedMonth, day);
         const value = (start_date <= date && date <= end_date) ? document.createElement('a') : document.createElement('li');
         value.innerHTML = day;
-        value.setAttribute('data-timestamp', date.getTime());
         if (start_date <= date && date <= end_date) {
             value.classList.add('active');
         }
         // add event listener
         value.onclick = (e) => {
-            let time_stamp = e.target.getAttribute('data-timestamp');
-            let date = new Date(Number(time_stamp));
-            updateTimeperiod(date, date);
+            if (e.shiftKey) {updateTimeperiod(null, date)}
+            else {updateTimeperiod(date, date)}
             generateCalender();
             buildStats();
         }
@@ -94,10 +92,26 @@ next_month.addEventListener('click', () => {
 });
 
 // function updating the time period for the statistic
-function updateTimeperiod(start, end) {
+function updateTimeperiod(start=null, end=null) {
+    if (!start) {
+        start = startDate.getAttribute('data-timestamp');
+        start = new Date(Number(start));
+    }
+
+    if (!end) {
+        end = endDate.getAttribute('data-timestamp');
+        end = new Date(Number(end));
+    }
+
+    // make start always the earlier date
+    if (end < start) { [start, end] = [end, start] };
+
     startDate.setAttribute('data-timestamp', start.getTime());
     endDate.setAttribute('data-timestamp', end.getTime());
-    dateSelector.innerText = `${start.toLocaleDateString()}${start===end ? (" - " + end.toLocaleDateString()) : ""}`;
+
+    if (start.getTime() === end.getTime()) {
+        dateSelector.innerText = `${start.toLocaleDateString()}`;
+    } else { dateSelector.innerText = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}` }
     document.getElementById("statistic_page").setAttribute("data-changes", "true");
 }
 
@@ -136,7 +150,6 @@ async function buildStats() {
         let chart_boxes = document.getElementsByClassName("chart-box");
         for (const box of chart_boxes) { box.style.display = "none" }
         // add no data string to page content
-        console.log(document.getElementById("stats_pagecontent"));
         let no_data = document.createElement("p");
         no_data.id = "no_data";
         no_data.classList.add("no-data");
