@@ -191,6 +191,11 @@ function generateCalender() {
 
     // generate calendar body with days from selected month
     calendarBody.innerHTML = '';
+    // add placeholder days for first week
+    for (let day = 1; day < new Date(selectedYear, selectedMonth, 1).getDay(); day++) {
+        calendarBody.appendChild(document.createElement('li'));
+    }
+    // add days of month
     for (let day = 1; day <= daysInMonth; day++) {
         let date = new Date(selectedYear, selectedMonth, day).toString();
         const value = (date === currentDate) ? document.createElement('a') : document.createElement('li');
@@ -202,6 +207,7 @@ function generateCalender() {
     }
 }
 
+// event listener for calendar month change buttons
 const prev_month = document.getElementById("calendar_prev_month");
 prev_month.addEventListener('click', () => {
     console.log("Go to previous month...")
