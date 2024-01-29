@@ -50,11 +50,21 @@ function generateCalender() {
     }
     // add days of month
     for (let day = 1; day <= daysInMonth; day++) {
+        // create element
         let date = new Date(selectedYear, selectedMonth, day);
         const value = (start_date <= date && date <= end_date) ? document.createElement('a') : document.createElement('li');
         value.innerHTML = day;
+        value.setAttribute('data-timestamp', date.getTime());
         if (start_date <= date && date <= end_date) {
             value.classList.add('active');
+        }
+        // add event listener
+        value.onclick = (e) => {
+            let time_stamp = e.target.getAttribute('data-timestamp');
+            let date = new Date(Number(time_stamp));
+            updateTimeperiod(date, date);
+            generateCalender();
+            buildStats();
         }
         calendarBody.appendChild(value);
     }
@@ -87,8 +97,8 @@ next_month.addEventListener('click', () => {
 function updateTimeperiod(start, end) {
     startDate.setAttribute('data-timestamp', start.getTime());
     endDate.setAttribute('data-timestamp', end.getTime());
-    dateSelector.innerText = `${start.toLocaleDateString()}${start===end ? " - " + end.toLocaleDateString() : ""}`;
-    changes = true;
+    dateSelector.innerText = `${start.toLocaleDateString()}${start===end ? (" - " + end.toLocaleDateString()) : ""}`;
+    document.getElementById("statistic_page").setAttribute("data-changes", "true");
 }
 
 
@@ -103,11 +113,14 @@ const mediaAllocation = {
 document.getElementById("chart_btn").addEventListener("click", buildStats)
 
 async function buildStats() {
-    // hide main page and show static page
+    // hide main page and show statistic page
     main_page.style.height = "0px";
     main_page.style.opacity = "0%";
     stats_page.style.height = "100%";
     stats_page.style.opacity = "100%";
+
+    let changes = document.getElementById("statistic_page").getAttribute("data-changes");
+    changes = (changes == "true") ? true : false;
 
     if (!changes) {return};
 
@@ -121,9 +134,15 @@ async function buildStats() {
         if (document.getElementById("no_data")) {return;}
         // hide boxes
         let chart_boxes = document.getElementsByClassName("chart-box");
-        for (const box of chart_boxes) {box.style.display = "none"}
+        for (const box of chart_boxes) { box.style.display = "none" }
         // add no data string to page content
-        document.getElementById("stats_pagecontent").innerHTML += '<p id="no_data" class="no-data">No data for today!</p>';
+        console.log(document.getElementById("stats_pagecontent"));
+        let no_data = document.createElement("p");
+        no_data.id = "no_data";
+        no_data.classList.add("no-data");
+        no_data.innerText = "No data for that day!";
+        document.getElementById("stats_pagecontent").appendChild(no_data);
+        document.getElementById("statistic_page").setAttribute("data-changes", "false");
         return;
     } else {
         // show boxes
@@ -151,7 +170,7 @@ async function buildStats() {
         if (changes) {
             document.getElementById("generalOverview").remove();
             document.getElementById("mediaOverview").remove();
-            changes = false;
+            document.getElementById("statistic_page").setAttribute("data-changes", "false");
         }
         return;
     }
@@ -172,7 +191,9 @@ async function buildStats() {
 
     let elmnt = document.getElementById("generalOverview");
     if (elmnt) {elmnt.remove()};
-    document.getElementById("general").innerHTML += `<canvas id="generalOverview"></canvas>`
+    let canvas = document.createElement("canvas");
+    canvas.id = "generalOverview";
+    document.getElementById("general").appendChild(canvas);
 
     new Chart("generalOverview", {
         type: "pie",
@@ -203,7 +224,9 @@ async function buildStats() {
     // render media stats
     elmnt = document.getElementById("mediaOverview");
     if (elmnt) {elmnt.remove()};
-    document.getElementById("media").innerHTML += `<canvas id="mediaOverview"></canvas>`
+    canvas = document.createElement("canvas");
+    canvas.id = "mediaOverview";
+    document.getElementById("media").appendChild(canvas);
 
     let media_amounts = [["Social Media", 0, 0], ["Work", 0, 0], ["Programming", 0, 0], ["Search Engines", 0, 0], ["Other", 0, 0]];
     for (let i=0; i < webpages.length; i++) {
@@ -255,5 +278,5 @@ async function buildStats() {
         }
     })
 
-    changes = false;
+    document.getElementById("statistic_page").setAttribute("data-changes", "false");
 }

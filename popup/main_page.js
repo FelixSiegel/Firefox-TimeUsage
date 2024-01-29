@@ -4,12 +4,12 @@ console.log("Hello from the popup.js");
 const storageArea = browser.storage.local;
 // const vars representing the pages of popup
 const main_page = document.getElementById("main_page");
-const stats_page = document.getElementById("static_page");
+const stats_page = document.getElementById("statistic_page");
 const settings_page = document.getElementById("settings_page");
 
-// variable indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
-// initial to true that charts rendered at first time
-let changes = true;
+// data attribute indicate if changes to list (like deleting entry...) was made -> essential for chart rendering
+// initial set to true to first time render charts
+stats_page.setAttribute("data-changes", "true");
 
 // Function that returns actualy date in the format mm/dd/yy
 function getToday(date=new Date()) {
@@ -107,7 +107,7 @@ async function updateList() {
 
 // Function for delete time of list entry
 function deleteEntry(entry) {
-    changes = true;
+    stats_page.setAttribute("data-changes", "true");
     let hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to delete: ", hostname);
 
@@ -126,7 +126,7 @@ function deleteEntry(entry) {
 
 // Function to ignore entry in list from timing
 function addIgnorelist(entry) {
-    changes = true;
+    stats_page.setAttribute("data-changes", "true");
     let hostname = entry.children[0].children[0].innerText;
     console.log("Detected host to add ignore: ", hostname);
 
@@ -188,7 +188,7 @@ document.getElementById("list_body").addEventListener("click", function(event) {
 
 // go back arrow handling in popup
 function backToMainPage() {
-    // show main page and hide static page
+    // show main page and hide statistic page
     main_page.style.height = "100%";
     main_page.style.opacity = "100%";
     stats_page.style.height = "0px";
