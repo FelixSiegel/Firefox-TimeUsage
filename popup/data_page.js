@@ -169,31 +169,55 @@ document.getElementById("chart_btn").addEventListener("click", async function() 
 // generate the calendar
 const calendarHead = document.querySelector('#calendar_month');
 const calendarBody = document.querySelector('.calendar-body');
-let selected_timestamp = calendarHead.getAttribute('data-timestamp');
+generateCalender();
 
-if (!selected_timestamp) {
-    let timestamp = new Date().getTime();
-    calendarHead.setAttribute('data-timestamp', timestamp);
-    selected_timestamp = timestamp;
-}
+function generateCalender() {
+    let selected_timestamp = calendarHead.getAttribute('data-timestamp');
 
-const selectedDate = new Date(Number(selected_timestamp));
-const selectedDay = selectedDate.getDate();
-const selectedMonth = selectedDate.getMonth();
-const selectedYear = selectedDate.getFullYear();
-const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-const currentDate = new Date(new Date().setHours(0, 0, 0, 0)).toString();
-
-// generate calendar head with month and year
-calendarHead.innerHTML = `${selectedDate.toLocaleString('default', { month: 'long' })} ${selectedYear}`;
-
-// generate calendar body with days from selected month
-for (let day = 1; day <= daysInMonth; day++) {
-    let date = new Date(selectedYear, selectedMonth, day).toString();
-    const value = (date === currentDate) ? document.createElement('a') : document.createElement('li');
-    value.innerHTML = day;
-    if (date === currentDate) {
-        value.classList.add('active');
+    if (!selected_timestamp) {
+        let timestamp = new Date().getTime();
+        calendarHead.setAttribute('data-timestamp', timestamp);
+        selected_timestamp = timestamp;
     }
-    calendarBody.appendChild(value);
+
+    let selectedDate = new Date(Number(selected_timestamp));
+    let selectedMonth = selectedDate.getMonth();
+    let selectedYear = selectedDate.getFullYear();
+    let daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    let currentDate = new Date(new Date().setHours(0, 0, 0, 0)).toString();
+
+    // generate calendar head with month and year
+    calendarHead.innerHTML = `${selectedDate.toLocaleString('default', { month: 'long' })} ${selectedYear}`;
+
+    // generate calendar body with days from selected month
+    calendarBody.innerHTML = '';
+    for (let day = 1; day <= daysInMonth; day++) {
+        let date = new Date(selectedYear, selectedMonth, day).toString();
+        const value = (date === currentDate) ? document.createElement('a') : document.createElement('li');
+        value.innerHTML = day;
+        if (date === currentDate) {
+            value.classList.add('active');
+        }
+        calendarBody.appendChild(value);
+    }
 }
+
+const prev_month = document.getElementById("calendar_prev_month");
+prev_month.addEventListener('click', () => {
+    console.log("Go to previous month...")
+    let timestamp = calendarHead.getAttribute('data-timestamp');
+    let date = new Date(Number(timestamp));
+    date.setMonth(date.getMonth() - 1);
+    calendarHead.setAttribute('data-timestamp', date.getTime());
+    generateCalender();
+});
+
+const next_month = document.getElementById("calendar_next_month");
+next_month.addEventListener('click', () => {
+    console.log("Go to next month...")
+    let timestamp = calendarHead.getAttribute('data-timestamp');
+    let date = new Date(Number(timestamp));
+    date.setMonth(date.getMonth() + 1);
+    calendarHead.setAttribute('data-timestamp', date.getTime());
+    generateCalender();
+});

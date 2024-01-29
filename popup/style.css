@@ -424,7 +424,6 @@ calendar-selector[data-func="slide"]:hover {
     margin: 0;
     padding: 0;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .calendar-weekdays {
