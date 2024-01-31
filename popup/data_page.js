@@ -57,7 +57,10 @@ function generateCalender() {
         value.innerHTML = day;
         // add event listener
         value.onmousedown = (e) => {
-            if (e.shiftKey) { updateTimeperiod(null, date) }
+            if (e.shiftKey) {
+                updateTimeperiod(null, date);
+                updateActive();
+            }
             else {
                 updateTimeperiod(date, date);
                 updateActive();
