@@ -17,18 +17,19 @@ function generateCalender() {
     let end_timestamp = endDate.getAttribute('data-timestamp');
     let selected_timestamp = calendarHead.getAttribute('data-timestamp');
 
+    let current_date = new Date();
     if (!start_timestamp) {
-        start_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        start_timestamp = current_date.setHours(0, 0, 0, 0);
         startDate.setAttribute('data-timestamp', start_timestamp);
     }
 
     if (!end_timestamp) {
-        end_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        end_timestamp = current_date.setHours(0, 0, 0, 0);
         endDate.setAttribute('data-timestamp', end_timestamp);
     }
 
     if (!selected_timestamp) {
-        selected_timestamp = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+        selected_timestamp = new Date(current_date).setDate(1);
         calendarHead.setAttribute('data-timestamp', selected_timestamp);
     }
 
@@ -52,22 +53,67 @@ function generateCalender() {
     for (let day = 1; day <= daysInMonth; day++) {
         // create element
         let date = new Date(selectedYear, selectedMonth, day);
-        const value = (start_date <= date && date <= end_date) ? document.createElement('a') : document.createElement('li');
+        const value = document.createElement('li');
         value.innerHTML = day;
-        if (start_date <= date && date <= end_date) {
-            value.classList.add('active');
-        }
         // add event listener
-        value.onclick = (e) => {
-            if (e.shiftKey) {updateTimeperiod(null, date)}
-            else {updateTimeperiod(date, date)}
-            generateCalender();
+        value.onmousedown = (e) => {
+            if (e.shiftKey) { updateTimeperiod(null, date) }
+            else {
+                updateTimeperiod(date, date);
+                updateActive();
+            }
+        };
+        value.addEventListener('mouseenter', (e) => {
+            if (e.buttons == 1) {
+                updateTimeperiod(null, date);
+                updateActive();
+            }
+            // remove event listener to prevent multiple calls
+            value.removeEventListener('mouseenter', arguments.callee);
+        });
+
+        value.addEventListener('mouseleave', () => {
+            value.addEventListener('mouseenter', arguments.callee );
+        });
+
+        value.onmouseup = () =>{
             buildStats();
         }
+
         calendarBody.appendChild(value);
     }
+    function updateActive(start, end) {
+        if (!start) {
+            start = startDate.getAttribute('data-timestamp');
+            start = new Date(Number(start));
+        }
 
+        if (!end) {
+            end = endDate.getAttribute('data-timestamp');
+            end = new Date(Number(end));
+        }
+
+        // make start always the earlier date
+        if (end.getTime() < start.getTime()) { start = [end, end=start][0]; };
+
+        let active = document.querySelectorAll('.active');
+        for (const day of active) { day.classList.remove('active', 'first-date', 'last-date') }
+
+        let days = document.querySelectorAll('.calendar-body li');
+        for (let i = 0; i < days.length; i++) {
+            if (days[i].innerHTML == '') { continue; }
+            let date = new Date(selectedYear, selectedMonth, days[i].innerHTML);
+            if (start.getTime() <= date.getTime() && date.getTime() <= end.getTime()) {
+                days[i].classList.add('active');
+            }
+        }
+        active = document.querySelectorAll('.active');
+        if (active.length == 0) { return; }
+        active[0].classList.add('first-date');
+        active[active.length - 1].classList.add('last-date');
+    }
     updateTimeperiod(start_date, end_date);
+    updateActive();
 }
 
 // event listener for calendar month change buttons
@@ -92,19 +138,23 @@ next_month.addEventListener('click', () => {
 });
 
 // function updating the time period for the statistic
-function updateTimeperiod(start=null, end=null) {
+function updateTimeperiod(start, end) {
+    // start could be null or date, end needs to be always date
     if (!start) {
         start = startDate.getAttribute('data-timestamp');
         start = new Date(Number(start));
     }
 
-    if (!end) {
+    // if start is higher then the given end -> swap values and set end to actual end of period
+    // this case happens if the user selects backwards and the given end value is actually the
+    // start of the period
+    if (start.getTime() > end.getTime()) {
+        // swap values
+        start = [end, end=start][0];
+        // set end to actual end of period
         end = endDate.getAttribute('data-timestamp');
         end = new Date(Number(end));
     }
-
-    // make start always the earlier date
-    if (end < start) { [start, end] = [end, start] };
 
     startDate.setAttribute('data-timestamp', start.getTime());
     endDate.setAttribute('data-timestamp', end.getTime());

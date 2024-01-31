@@ -457,7 +457,7 @@ calendar-selector[data-func="slide"]:hover {
     width: 100%;
 }
 
-.calendar-body li, .calendar-body a {
+.calendar-body li {
     display: grid;
     place-items: center;
     text-align: center;
@@ -467,25 +467,25 @@ calendar-selector[data-func="slide"]:hover {
     margin: 0 auto;
     border-radius: 999px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
-.calendar-body li:hover { background-color: #30363d; }
+.calendar-body li:not(.active):hover { background-color: #30363d; }
 
-.calendar-body a.active {
+.calendar-body li.active {
     background-color: #8b949e;
-    border-radius: 0px;
     margin: 0;
     width: 100%;
+    border-radius: 0px;
     aspect-ratio: auto;
 }
 
-.calendar-body a.active:first-of-type {
+.calendar-body li.active.first-date {
     border-top-left-radius: 999px;
     border-bottom-left-radius: 999px;
 }
 
-.calendar-body a.active:last-of-type {
+.calendar-body li.active.last-date {
     border-top-right-radius: 999px;
     border-bottom-right-radius: 999px;
 }
