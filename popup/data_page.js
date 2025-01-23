@@ -230,7 +230,7 @@ async function buildStats() {
     // set common infos
     document.getElementById("date_string").innerText = day;
     document.getElementById("page_amount").innerText = (webpages.length) ? webpages.length : 0;
-    document.getElementById("time_spent").innerText = (usages) ? timeString(usages.reduce((c_sum, a) => c_sum + a, 0)) : "0sec";
+    document.getElementById("time_spent").innerText = (usages) ? stringifyTime(usages.reduce((c_sum, a) => c_sum + a, 0)) : "0sec";
 
     if (usages.reduce((c_sum, a) => c_sum + a, 0) == 0) {
         if (changes) {
