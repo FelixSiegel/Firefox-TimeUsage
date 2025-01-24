@@ -251,6 +251,31 @@ async function updateActive() {
     await addUrlEntry(getHostname(url));
 }
 
+// Event listener for when the extension is installed or updated
+browser.runtime.onInstalled.addListener(async (details) => {
+    switch (details) {
+        case "install":
+            log("EVENT", "Extension installed!", "rgb(255, 153, 0)");
+
+            // Set default values for the storage
+            await storageArea.set({
+                "c_url": null,
+                "ignored": [],
+                "settings": {
+                    "focusDetection": true,
+                    "absentDetection": true,
+                    "inactivityTimeout": 120
+                }
+            });
+            break;
+
+        case "update":
+            log("EVENT", "Extension updated!", "rgb(255, 153, 0)");
+            break;
+    }
+});
+
+// Event listeners for tab changes
 browser.tabs.onActivated.addListener(updateActive);
 browser.tabs.onUpdated.addListener(updateActive);
 
