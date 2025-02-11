@@ -31,5 +31,11 @@
         "default_icon": "images/stopwatch.svg",
         "default_title": "BrowserTime",
         "default_popup": "popup/popup.html"
+    },
+
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{d46e9d00-224d-4911-9565-86c1985a5f5f}"
+        }
     }
 }
