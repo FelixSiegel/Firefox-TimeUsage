@@ -253,7 +253,7 @@ async function updateActive() {
 
 // Event listener for when the extension is installed or updated
 browser.runtime.onInstalled.addListener(async (details) => {
-    switch (details) {
+    switch (details.reason) {
         case "install":
             log("EVENT", "Extension installed!", "rgb(255, 153, 0)");
 
@@ -294,9 +294,8 @@ browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
 
         case 'stop':
             try {
-                // TODO: Maybe update time for current url before deleting it???
+                await updateTime();
                 await storageArea.remove("c_url");
-                log("WARN", "Current url (c_url) was deleted after Stop-Request...");
             } catch (err) {
                 log("ERROR", `Error occurred when deleting c_url from storage after Stop-Request. Error: \n${err}`);
             }
