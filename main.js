@@ -45,7 +45,9 @@ class SettingsManager {
                 ?? SettingsManager.DEFAULT_ABSENT_DETECTION;
             SettingsManager.inactivityTimeout = settings?.inactivityTimeout
                 ?? SettingsManager.DEFAULT_INACTIVITY_TIMEOUT;
+
             EventManager.updateEventListeners();
+            console.log("[SETTINGS LOADED] Event Listeners Updated!");
         } catch (error) {
             console.error("Failed to load settings:", error);
         }
@@ -74,13 +76,6 @@ class SettingsManager {
             SettingsManager.inactivityTimeout = newValue?.inactivityTimeout
                 ?? SettingsManager.DEFAULT_INACTIVITY_TIMEOUT;
             SettingsManager.user_status = "present";
-
-            if (SettingsManager.timeout) {
-                clearTimeout(SettingsManager.timeout);
-            }
-            SettingsManager.timeout = SettingsManager.absent_detection
-                ? EventManager.createAbsentTimeout()
-                : null;
 
             EventManager.updateEventListeners();
             console.log("[SETTINGS CHANGED] Updated!");
@@ -129,9 +124,14 @@ class EventManager {
         }
 
         if (SettingsManager.absent_detection) {
+            SettingsManager.timeout = EventManager.createAbsentTimeout();
             EventManager.addAbsentListeners();
         } else {
             EventManager.removeAbsentListeners();
+            if (SettingsManager.timeout) {
+                clearTimeout(SettingsManager.timeout);
+                SettingsManager.timeout = null;
+            }
         }
     }
 
@@ -177,5 +177,5 @@ class EventManager {
     }
 }
 
-window.onload = SettingsManager.loadSettings;
+SettingsManager.loadSettings();
 browser.storage.onChanged.addListener(SettingsManager.handleSettingsChange);

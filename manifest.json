@@ -1,5 +1,5 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "BrowserTime",
     "version": "1.0",
     "description": "Displays a ranking list of time you spend on websites of current day.",
@@ -13,24 +13,34 @@
     "content_scripts": [
         {
         "matches": ["https://*/*", "http://*/*"],
-        "js": ["main.js"]
+        "js": ["main.js"],
+        "run_at": "document_end"
         }
     ],
 
     "background": {
-        "scripts": ["background-script.js"],
-        "persistent": false
-    },      
+        "scripts": ["background-script.js"]
+    },
 
     "permissions": [
-        "activeTab",
         "tabs",
         "storage"
     ],
-    
-    "browser_action": {
+
+    "host_permissions": [
+        "https://*/*",
+        "http://*/*"
+    ],
+
+    "action": {
         "default_icon": "images/stopwatch.svg",
         "default_title": "BrowserTime",
         "default_popup": "popup/popup.html"
+    },
+
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{d46e9d00-224d-4911-9565-86c1985a5f5f}"
+        }
     }
 }

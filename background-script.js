@@ -280,34 +280,41 @@ browser.tabs.onActivated.addListener(updateActive);
 browser.tabs.onUpdated.addListener(updateActive);
 
 // Wait for messages from popup.js and main.js
-browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
+browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
+    // See the following link for more information on message handling in the background script,
+    // including the use of sendResponse in combination with async functionality:
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#sending_an_asynchronous_response_using_sendresponse
+
     log("MESSAGE", `${data.cmd}-Request received.`, "orchid");
 
     switch (data.cmd) {
         case 'update_time':
-            await updateTime();
-            return { state: "updated" };
+            updateTime().then(() => sendResponse({ state: "updated" }));
+            return true;
 
         case 'update_active':
-            await updateActive();
-            return { state: "updated" };
+            updateActive().then(() => sendResponse({ state: "updated" }));
+            return true;
 
         case 'stop':
             try {
-                await updateTime();
-                await storageArea.remove("c_url");
+                updateTime().then(async () => {
+                    await storageArea.remove("c_url");
+                    sendResponse({ state: "stopped" });
+                });
             } catch (err) {
                 log("ERROR", `Error occurred when deleting c_url from storage after Stop-Request. Error: \n${err}`);
+                sendResponse({ state: "error" });
             }
-            break;
+            return true;
 
         case 'delete_entry':
-            await deleteTime(data.url);
-            return { state: "successful" };
+            deleteTime(data.url).then(() => sendResponse({ state: "successful" }));
+            return true;
 
         case 'ignore_entry':
-            await addIgnore(data.url);
-            return { state: "successful" };
+            addIgnore(data.url).then(() => sendResponse({ state: "successful" }));
+            return true;
 
         default:
             log("WARN", `Unknown command received: ${data.cmd}`);
