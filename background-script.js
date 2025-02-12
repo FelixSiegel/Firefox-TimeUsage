@@ -9,6 +9,18 @@ const storageArea = browser.storage.local;
  */
 function log(type, msg, color = "LawnGreen") {
     console.log(`%c[${type}]: `, `color: ${color};font-weight:bold;`, msg);
+
+    if (["INFO", "FUNC"].includes(type)) {
+        return;
+    }
+
+
+    browser.notifications.create({
+        type: "basic",
+        title: `(Debugging) - ${type}`,
+        message: msg
+    })
+
 }
 
 /**
@@ -125,7 +137,7 @@ async function addTime(url, time, day = null) {
 /**
  * Updates the time for the current URL based on the time elapsed since the URL was last set.
  * The time is split into days and added to the corresponding days. The timestamp of the current
- * URL will updated accordingly.
+ * URL will updated accordingly (to the current time).
  *
  * @returns {Promise<void>} A promise that resolves when the time has been successfully updated.
  */
@@ -263,10 +275,14 @@ browser.runtime.onInstalled.addListener(async (details) => {
                 "ignored": [],
                 "settings": {
                     "focusDetection": true,
-                    "absentDetection": true,
+                    "idleDetection": true,
                     "inactivityTimeout": 120
                 }
             });
+
+            // Set idle detection to 2 minutes
+            browser.idle.setDetectionInterval(120);
+
             break;
 
         case "update":
@@ -278,6 +294,30 @@ browser.runtime.onInstalled.addListener(async (details) => {
 // Event listeners for tab changes
 browser.tabs.onActivated.addListener(updateActive);
 browser.tabs.onUpdated.addListener(updateActive);
+
+// Check for user's system idle state
+browser.idle.onStateChanged.addListener((state) => {
+    if (state === "idle" || state === "locked") {
+        log("EVENT", "User is idle!", "rgb(255, 153, 0)");
+        updateTime();
+        storageArea.remove("c_url");
+    } else if (state === "active") {
+        log("EVENT", "User is active!", "rgb(255, 153, 0)");
+        updateActive();
+    }
+});
+
+// Event listener for window focus changes
+browser.windows.onFocusChanged.addListener((windowId) => {
+    if (windowId === browser.windows.WINDOW_ID_NONE) {
+        log("EVENT", "Window is unfocused!", "rgb(255, 153, 0)");
+        updateTime();
+        storageArea.remove("c_url");
+    } else {
+        log("EVENT", "Window is focused!", "rgb(255, 153, 0)");
+        updateActive();
+    }
+});
 
 // Wait for messages from popup.js and main.js
 browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {

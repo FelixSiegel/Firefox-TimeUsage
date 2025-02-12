@@ -10,26 +10,16 @@
         "48": "images/stopwatch.svg"
     },
 
-    "content_scripts": [
-        {
-        "matches": ["https://*/*", "http://*/*"],
-        "js": ["main.js"],
-        "run_at": "document_end"
-        }
-    ],
-
     "background": {
         "scripts": ["background-script.js"]
     },
 
     "permissions": [
         "tabs",
+        "windows",
+        "idle",
+        "notifications",
         "storage"
-    ],
-
-    "host_permissions": [
-        "https://*/*",
-        "http://*/*"
     ],
 
     "action": {

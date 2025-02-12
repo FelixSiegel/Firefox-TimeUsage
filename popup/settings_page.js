@@ -81,19 +81,19 @@ document.getElementById('focus_detection').onclick = async () => {
     })
 }
 
-document.getElementById('absent_detection').onclick = async () => {
+document.getElementById('idle_detection').onclick = async () => {
     storageArea.get(null, (currentData) => {
         // set new date to browser.storage.local
-        let absent_detection = currentData?.settings?.absentDetection;
-        if (absent_detection == undefined) { absent_detection = true; } // default value
-        console.log(`Settings absent_detection changed from ${absent_detection} to ${!absent_detection}`);
-        currentData.settings = Object.assign({}, currentData?.settings, {'absentDetection': !absent_detection});
+        let idle_detection = currentData?.settings?.idleDetection;
+        if (idle_detection == undefined) { idle_detection = true; } // default value
+        console.log(`Settings idle_detection changed from ${idle_detection} to ${!idle_detection}`);
+        currentData.settings = Object.assign({}, currentData?.settings, {'idleDetection': !idle_detection});
         storageArea.set(currentData);
         // enable/disable checkbox
-        !absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
-        // show/hide settings for activity timeout if absent_detection is enabled/disabled
+        !idle_detection ? enable_checkbox('idle_detection') : disable_checkbox('idle_detection');
+        // show/hide settings for activity timeout if idle_detection is enabled/disabled
         let timeout_set = document.getElementById("timeout_set");
-        !absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
+        !idle_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
     })
 
 }
@@ -269,13 +269,13 @@ async function loadSettings() {
     if (focus_detection == undefined) { focus_detection = true }; // default is true/activated
     focus_detection ? enable_checkbox('focus_detection') : disable_checkbox('focus_detection');
 
-    let absent_detection = settings?.absentDetection;
-    if (absent_detection == undefined) { absent_detection = true }; // default is true/activated
-    absent_detection ? enable_checkbox('absent_detection') : disable_checkbox('absent_detection');
+    let idle_detection = settings?.idleDetection;
+    if (idle_detection == undefined) { idle_detection = true }; // default is true/activated
+    idle_detection ? enable_checkbox('idle_detection') : disable_checkbox('idle_detection');
 
-    // show/hide settings for activity timeout if absent_detection is enabled/disabled
+    // show/hide settings for activity timeout if idle_detection is enabled/disabled
     let timeout_set = document.getElementById("timeout_set");
-    absent_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
+    idle_detection ? timeout_set.style.display = "block" : timeout_set.style.display = "none";
 
     let inactivity_timeout = settings?.inactivityTimeout;
     if (inactivity_timeout == undefined) { inactivity_timeout = 2 * 60 }; // default is 2 min
