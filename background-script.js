@@ -6,21 +6,22 @@ const storageArea = browser.storage.local;
  * @param {string} type - The type of the log message (e.g., "INFO", "ERROR").
  * @param {string} msg - The message to log.
  * @param {string} [color="LawnGreen"] - The color of the log message. Defaults to "LawnGreen".
+ * @param {string} [notify_type="None"] - The type of notification to display. Defaults to "None", which means no notification is displayed.
  */
-function log(type, msg, color = "LawnGreen") {
+function log(type, msg, color = "LawnGreen", notify_type = "None") {
     console.log(`%c[${type}]: `, `color: ${color};font-weight:bold;`, msg);
 
-    if (["INFO", "FUNC"].includes(type)) {
-        return;
-    }
+    if (notify_type === "None") { return; }
 
+    storageArea.get("settings").then((storage) => {
+        if (!storage?.settings?.notifications[notify_type]) { return; }
 
-    browser.notifications.create({
-        type: "basic",
-        title: `(Debugging) - ${type}`,
-        message: msg
-    })
-
+        browser.notifications.create({
+            type: "basic",
+            title: `${type}`,
+            message: msg
+        });
+    });
 }
 
 /**
@@ -89,7 +90,7 @@ function getHostname(url) {
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
 async function addUrlEntry(url = null) {
-    log("FUNC", "Called addUrlEntry", "DodgerBlue");
+    log("FUNC", "Called addUrlEntry", "DodgerBlue", "function");
     let today = getToday();
 
     if (!url) {
@@ -98,20 +99,21 @@ async function addUrlEntry(url = null) {
     }
 
     if (!url) {
-        log("WARN", "Can't create new entry! No URL provided and Current url (c_url) is undefined!", "orange");
+        log("WARN", "Can't create new entry! No URL provided and Current url (c_url) is undefined!", "orange", "warning");
         return;
     }
 
     const { [today]: dayStorage } = await storageArea.get(today);
     if (dayStorage?.[url]) {
-        log("INFO", `Entry for ${url} on ${today} already exists! No new entry was created.`);
+        log("INFO", `Entry for ${url} on ${today} already exists! No new entry was created.`, "LawnGreen", "info");
         return;
     }
 
     let obj = { [today]: { ...dayStorage, [url]: 0 } };
 
     await storageArea.set(obj);
-    log("INFO", `New entry created for ${url} on ${today}`);
+    log("INFO", `New entry created for ${url} on ${today}`, "LawnGreen", "info");
+    return;
 }
 
 /**
@@ -130,7 +132,7 @@ async function addTime(url, time, day = null) {
     obj[url] = (obj[url] ?? 0) + time;
 
     await storageArea.set({ [day]: obj });
-    log("INFO", `Time successfully added! \nUrl: ${url} | Date: ${day} | Time-added: ${time}`);
+    log("INFO", `Time successfully added! \nUrl: ${url} | Date: ${day} | Time-added: ${time}`, "LawnGreen", "info");
     return;
 }
 
@@ -142,11 +144,11 @@ async function addTime(url, time, day = null) {
  * @returns {Promise<void>} A promise that resolves when the time has been successfully updated.
  */
 async function updateTime() {
-    log("FUNC", "Called updateTime", "DodgerBlue")
+    log("FUNC", "updateTime called", "DodgerBlue", "function");
 
     const item = await storageArea.get("c_url");
     if (!item?.c_url) {
-        log("WARN", "Can't update time! Current url (c_url) is undefined!", "orange");
+        log("WARN", "Can't update time! Current url (c_url) is undefined!", "orange", "warning");
         return;
     }
 
@@ -180,7 +182,7 @@ async function updateTime() {
     }
 
     await storageArea.set({ "c_url": [url, now / 1000 | 0] });
-    log("INFO", `Updated time for ${url}`);
+    log("INFO", `Updated time for ${url}`, "LawnGreen", "info");
 }
 
 /**
@@ -191,16 +193,16 @@ async function updateTime() {
  * @returns {Promise<void>} A promise that resolves when the time entry has been deleted.
  */
 async function deleteTime(url, day = null) {
-    log("FUNC", "Called deleteTime", "DodgerBlue");
+    log("FUNC", "deleteTime called!", "DodgerBlue", "function");
     day = day || getToday();
     const { [day]: dayStorage } = await storageArea.get(day);
 
     if (dayStorage?.[url]) {
         delete dayStorage[url];
         await storageArea.set({ [day]: dayStorage });
-        log("INFO", `Time successfully deleted for ${day}! Url: ${url}`);
+        log("INFO", `Time successfully deleted for ${day}! Url: ${url}`, "LawnGreen", "info");
     } else {
-        log("WARN", `No entry found for ${url} on ${day}`);
+        log("WARN", `No entry found for ${url} on ${day}`, "orange", "warning");
     }
 }
 
@@ -211,7 +213,7 @@ async function deleteTime(url, day = null) {
  * @returns {Promise<void>} A promise that resolves when the URL has been added to the ignore list and its entry has been deleted from today's records.
  */
 async function addIgnore(url) {
-    log("FUNC", "Called addIgnore", "DodgerBlue");
+    log("FUNC", "addIgnore called!", "DodgerBlue", "function");
     // First delete entry from today's records
     // TODO: delete entry from all days -> currently it will only be deleted from the current day
     await deleteTime(url);
@@ -220,7 +222,7 @@ async function addIgnore(url) {
     const { ignored: ignore_list = [] } = await storageArea.get("ignored");
     ignore_list.push(url);
     await storageArea.set({ "ignored": ignore_list });
-    log("INFO", `Url to ignore was added: ${url}`);
+    log("INFO", `Url to ignore was added: ${url}`, "LawnGreen", "info");
 }
 
 /**
@@ -230,7 +232,7 @@ async function addIgnore(url) {
  * @returns {Promise<void>} A promise that resolves when the function completes.
  */
 async function updateActive() {
-    log("EVENT", "Tab changed or updated!", "rgb(255, 153, 0)");
+    log("FUNC", "updateActive called! Tab change or update", "DodgerBlue", "function");
 
     await updateTime();
 
@@ -239,9 +241,18 @@ async function updateActive() {
     const url = tab?.url;
 
     if (!url) {
-        log("WARN", "No URL found for the active tab.");
+        log("WARN", "No URL found for the active tab.", "orange", "warning");
         await storageArea.remove("c_url");
         return;
+    }
+
+    const hostname = getHostname(url);
+    const { c_url } = await storageArea.get("c_url");
+    if (c_url && c_url[0] === hostname) {
+        log("INFO", `Current url (c_url) is already set to: ${url}`, "LawnGreen", "info");
+        return;
+    } else {
+        log("INFO", `New url detected: ${url} (Previous url: ${c_url?.[0]})`, "LawnGreen", "tabChange");
     }
 
     // Get current ignore-list and validate url
@@ -255,12 +266,12 @@ async function updateActive() {
 
     // Update current url in storage
     await storageArea.set({
-        "c_url": [getHostname(url), Date.now() / 1000 | 0]
+        "c_url": [hostname, Date.now() / 1000 | 0]
     });
-    log("INFO", `Current url (c_url) updated to: ${url}`);
+    log("INFO", `Current url (c_url) updated to: ${url}`, "LawnGreen", "info");
 
     // Create new entry for new url (will be created only if not exists)
-    await addUrlEntry(getHostname(url));
+    await addUrlEntry(hostname);
 }
 
 // Event listener for when the extension is installed or updated
@@ -276,7 +287,17 @@ browser.runtime.onInstalled.addListener(async (details) => {
                 "settings": {
                     "focusDetection": true,
                     "idleDetection": true,
-                    "inactivityTimeout": 120
+                    "inactivityTimeout": 120,
+                    "notifications": {
+                        "idle": true,
+                        "focus": true,
+                        "tabChange": true,
+                        "error": true,
+                        "message": false,
+                        "warning": false,
+                        "info": false,
+                        "function": false
+                    }
                 }
             });
 
@@ -298,11 +319,11 @@ browser.tabs.onUpdated.addListener(updateActive);
 // Check for user's system idle state
 browser.idle.onStateChanged.addListener((state) => {
     if (state === "idle" || state === "locked") {
-        log("EVENT", "User is idle!", "rgb(255, 153, 0)");
+        log("EVENT", "User is idle!", "rgb(255, 153, 0)", "idle");
         updateTime();
         storageArea.remove("c_url");
     } else if (state === "active") {
-        log("EVENT", "User is active!", "rgb(255, 153, 0)");
+        log("EVENT", "User is active!", "rgb(255, 153, 0)", "idle");
         updateActive();
     }
 });
@@ -310,11 +331,11 @@ browser.idle.onStateChanged.addListener((state) => {
 // Event listener for window focus changes
 browser.windows.onFocusChanged.addListener((windowId) => {
     if (windowId === browser.windows.WINDOW_ID_NONE) {
-        log("EVENT", "Window is unfocused!", "rgb(255, 153, 0)");
+        log("EVENT", "Window is unfocused!", "rgb(255, 153, 0)", "focus");
         updateTime();
         storageArea.remove("c_url");
     } else {
-        log("EVENT", "Window is focused!", "rgb(255, 153, 0)");
+        log("EVENT", "Window is focused!", "rgb(255, 153, 0)", "focus");
         updateActive();
     }
 });
@@ -325,7 +346,7 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
     // including the use of sendResponse in combination with async functionality:
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/onMessage#sending_an_asynchronous_response_using_sendresponse
 
-    log("MESSAGE", `${data.cmd}-Request received.`, "orchid");
+    log("MESSAGE", `${data.cmd}-Request received.`, "orchid", "message");
 
     switch (data.cmd) {
         case 'update_time':
@@ -343,7 +364,7 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
                     sendResponse({ state: "stopped" });
                 });
             } catch (err) {
-                log("ERROR", `Error occurred when deleting c_url from storage after Stop-Request. Error: \n${err}`);
+                log("ERROR", `Error occurred when deleting c_url from storage after Stop-Request. Error: \n${err}`, "red", "error");
                 sendResponse({ state: "error" });
             }
             return true;
@@ -357,7 +378,8 @@ browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
             return true;
 
         default:
-            log("WARN", `Unknown command received: ${data.cmd}`);
+            log("WARN", `Unknown command received: ${data.cmd}`, "orange", "warning");
+            sendResponse({ state: "unknown" });
             break;
     }
 });
