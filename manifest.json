@@ -16,7 +16,6 @@
 
     "permissions": [
         "tabs",
-        "windows",
         "idle",
         "notifications",
         "storage"

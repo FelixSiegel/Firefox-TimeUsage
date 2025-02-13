@@ -11,5 +11,8 @@ export default {
   },
   run: {
     devtools: true,
+    pref: [
+      "ui.popup.disable_autohide=true",
+    ]
   }
 };
