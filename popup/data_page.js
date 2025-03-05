@@ -181,10 +181,8 @@ document.getElementById("chart_btn").addEventListener("click", buildStats)
 
 async function buildStats() {
     // hide main page and show statistic page
-    main_page.style.height = "0px";
-    main_page.style.opacity = "0%";
-    stats_page.style.height = "100%";
-    stats_page.style.opacity = "100%";
+    main_page.classList.add("closed");
+    stats_page.classList.remove("closed");
 
     let changes = document.getElementById("statistic_page").getAttribute("data-changes");
     changes = (changes == "true") ? true : false;

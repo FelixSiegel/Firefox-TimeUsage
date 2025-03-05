@@ -3,6 +3,8 @@ const storageArea = browser.storage.local;
 const main_page = document.getElementById("main_page");
 const stats_page = document.getElementById("statistic_page");
 const settings_page = document.getElementById("settings_page");
+const no_data_elmnt = document.getElementById("no_data");
+const list_body = document.getElementById("list_body");
 
 // The data attribute indicates if changes were made to the list (e.g., deleting an entry),
 // which is essential for chart rendering.
@@ -36,33 +38,38 @@ function getToday() {
 function stringifyTime(seconds) {
     if (seconds <= 0) return "0 seconds";
     if (seconds < 5) return "a few seconds";
-    if (seconds < 60) return `${seconds} sec`;
+    if (seconds < 60) return `${seconds} seconds`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`;
     return `${Math.floor(seconds / 3600)} h ${Math.floor((seconds % 3600) / 60)} min`;
 }
 
 /**
- * Generates a ranking list in HTML format from an array of items.
+ * Generates a ranking list from an array of items and appends it to the list body.
  *
  * @param {Array.<[string, number]>} items - An array of items where each item is a tuple: the first element is the
  * hostname (string) and the second element is the time used (number).
- * @returns {string} A string containing the HTML representation of the ranking list.
  */
 function generateRankingList(items) {
-    return items.map(item => `
-        <div class="list-item" data-time="${item[1]}">
-            <div class="list-info">
-                <p class="hostname">${item[0]}</p>
-                <p class="timeused">Time used: ${stringifyTime(item[1])}</p>
+    document.querySelectorAll(".list-item").forEach(item => item.remove());
+
+    items.forEach(item => {
+        const list_item = document.createElement("div");
+        list_item.classList.add("list-item");
+        list_item.dataset.time = item[1];
+        list_item.innerHTML = `
+            <div class="item-values">
+                <p class="host">${item[0]}</p>
+                <p class="time">${stringifyTime(item[1])}</p>
             </div>
-            <div class="list-setting">
-                <img class="list-options-icon" src="images/settings-dots.svg">
+            <div class="item-settings">
+                <img class="item-settings-dots" src="images/settings-dots.svg">
                 <div class="item-optionsmenu">
-                    <a class="optionsmenu-item">Delete</a>
-                    <a class="optionsmenu-item">Add Ignorelist</a>
+                    <a class="option">Delete</a>
+                    <a class="option">Add Ignorelist</a>
                 </div>
-            </div>
-        </div>`).join('');
+            </div>`;
+        list_body.appendChild(list_item);
+    });
 }
 
 /**
@@ -100,17 +107,16 @@ async function refreshStartpage() {
     await browser.runtime.sendMessage({ cmd: "update_time" });
     const { [today]: todayData } = await browser.storage.local.get();
 
-    if (!todayData) {
+    if (!todayData || Object.keys(todayData).length === 0) {
         console.log("No data for today");
-        document.getElementById("list_body").innerHTML = '<p class="no-data">No data for today</p>';
+        no_data_elmnt.classList.remove("hidden");
         refreshSummaryInfo();
         return;
     }
 
     const listData = Object.entries(todayData).sort((a, b) => b[1] - a[1]);
 
-    document.getElementById("list_body").innerHTML = generateRankingList(listData);
-    console.log("HTML-List updated!");
+    generateRankingList(listData);
     refreshSummaryInfo();
 }
 
@@ -185,20 +191,19 @@ function toggleMenuVisibility(elmnt) {
     menu.classList.toggle('opened');
 
     // Check if menu overflows in list-body
-    const bottomMax = document.getElementById("list_body").getBoundingClientRect().bottom;
+    const bottomMax = list_body.getBoundingClientRect().bottom;
     // If overflows -> make up-menu
+    console.log(menu.getBoundingClientRect().bottom, bottomMax);
     if (menu.getBoundingClientRect().bottom > bottomMax) {
-        menu.classList.add("up-menu");
-    } else {
-        menu.classList.remove("up-menu");
+        menu.classList.add("flip");
     }
 }
 
-document.getElementById("list_body").addEventListener("click", function (event) {
+list_body.addEventListener("click", function (event) {
     const target = event.target;
 
     // If item of options menu was clicked -> do action
-    if (target.classList.contains('optionsmenu-item')) {
+    if (target.classList.contains('option')) {
         const entry = target.closest('.list-item');
         if (target.innerText === 'Delete') {
             deleteEntry(entry);
@@ -213,7 +218,7 @@ document.getElementById("list_body").addEventListener("click", function (event) 
     }
 
     // If list-setting-icon clicked -> toggle visibility
-    if (target.classList.contains('list-options-icon')) {
+    if (target.classList.contains('item-settings-dots')) {
         toggleMenuVisibility(target);
     }
 });
@@ -244,9 +249,9 @@ function setPageVisibility(page, state) {
  * @returns {void}
  */
 function navigateToMain() {
-    setPageVisibility(main_page, "visible");
-    setPageVisibility(stats_page, "hidden");
-    setPageVisibility(settings_page, "hidden");
+    main_page.classList.remove("closed");
+    stats_page.classList.add("closed");
+    settings_page.classList.add("closed");
 }
 
 document.querySelectorAll('.arrow_back').forEach(item => { item.onclick = navigateToMain })

@@ -5,11 +5,8 @@
 const root = document.querySelector(':root');
 
 document.getElementById('settings_btn').addEventListener('click', () => {
-    // hide main page and show settings page
-    main_page.style.height = '0px';
-    main_page.style.opacity = "0%";
-    settings_page.style.height = '100%';
-    settings_page.style.opacity = "100%";
+    main_page.classList.add("closed");
+    settings_page.classList.remove("closed");
 })
 
 // Click-Handler for open/close settings-box

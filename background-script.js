@@ -16,6 +16,7 @@ function log(type, msg, color = "LawnGreen", notify_type = "None") {
     storageArea.get("settings").then((storage) => {
         if (!storage?.settings?.notifications[notify_type]) { return; }
 
+        return;
         browser.notifications.create({
             type: "basic",
             title: `${type}`,
@@ -197,7 +198,7 @@ async function deleteTime(url, day = null) {
     day = day || getToday();
     const { [day]: dayStorage } = await storageArea.get(day);
 
-    if (dayStorage?.[url]) {
+    if (dayStorage?.[url] !== undefined) {
         delete dayStorage[url];
         await storageArea.set({ [day]: dayStorage });
         log("INFO", `Time successfully deleted for ${day}! Url: ${url}`, "LawnGreen", "info");
